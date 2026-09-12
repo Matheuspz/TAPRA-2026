@@ -14,7 +14,6 @@ def timer_trigger_tapra1(myTimer: func.TimerRequest) -> None:
 
     logging.info(f'Timer executado em: {datetime.datetime.now()}')
 
-
 # HTTP TRIGGER
 @app.route(route="http_trigger_tapra2", methods=["GET"], auth_level=func.AuthLevel.ANONYMOUS)
 def http_trigger_tapra2(req: func.HttpRequest) -> func.HttpResponse:
@@ -42,21 +41,19 @@ def http_trigger_tapra2(req: func.HttpRequest) -> func.HttpResponse:
              status_code=200
         )
 
-
 # TIMER HTTP SOLICITAÇÃO
 @app.timer_trigger(schedule="30 * * * * *", arg_name="myTimer", run_on_startup=False,
               use_monitor=False) 
 def timer_trigger_http_request(myTimer: func.TimerRequest) -> None:
 
     valor = "Abacate"
-    url = f"funcapp-tapra-matheus-f6bhcydxeqh7c4eu.eastus-01.azurewebsites.net?valor={valor}"
+    url = f"https://funcapp-tapra-matheus-f6bhcydxeqh7c4eu.eastus-01.azurewebsites.net/api/http_trigger_http_response?valor={valor}"
     
     try:
         resposta = requests.get(url, timeout=15)
         logging.info(f"RESPOSTA: {resposta.text}")
     except Exception as e:
         logging.error(f"Erro ao chamar função http_trigger_http_response: {str(e)}")
-
 
 # HTTP RESPOSTA
 @app.route(route="http_trigger_http_response", auth_level=func.AuthLevel.ANONYMOUS)
