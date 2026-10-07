@@ -7,8 +7,8 @@ app = func.FunctionApp()
 
 @app.timer_trigger(schedule="0 * * * * *", arg_name="myTimer", run_on_startup=False,
               use_monitor=False) 
-def extract_analista(myTimer: func.TimerRequest) -> None:
-    logging.info('tabela analista')
+def extract_chamado_sla(myTimer: func.TimerRequest) -> None:
+    logging.info('tabela chamado_sla')
     
     sql_user = os.getenv("USER", None)
     sql_pass = os.getenv("PASSWORD", None)
@@ -35,7 +35,7 @@ def extract_analista(myTimer: func.TimerRequest) -> None:
             # Cria um cursor para executar a consulta
             cursor = conn.cursor()
             
-            query = "select * from itsm.analista"
+            query = "select * from itsm.chamado_sla"
 
             # Executa a consulta SQL
             cursor.execute(query)
@@ -46,5 +46,5 @@ def extract_analista(myTimer: func.TimerRequest) -> None:
             logging.info(rows)
 
     except Exception as e:
-        logging.error(f"Erro ao ler itsm.analista: {str(e)}")
+        logging.error(f"Erro ao ler itsm.chamado_sla: {str(e)}")
         raise
