@@ -7,8 +7,8 @@ app = func.FunctionApp()
 
 @app.timer_trigger(schedule="0 * * * * *", arg_name="myTimer", run_on_startup=False,
               use_monitor=False) 
-def extract_fila(myTimer: func.TimerRequest) -> None:
-    logging.info('tabela fila')
+def extract_Sla(myTimer: func.TimerRequest) -> None:
+    logging.info('tabela sla')
     
     sql_user = os.getenv("USER", None)
     sql_pass = os.getenv("PASSWORD", None)
@@ -35,7 +35,7 @@ def extract_fila(myTimer: func.TimerRequest) -> None:
             # Cria um cursor para executar a consulta
             cursor = conn.cursor()
             
-            query = "select * from itsm.fila"
+            query = "select * from itsm.sla"
 
             # Executa a consulta SQL
             cursor.execute(query)
@@ -46,6 +46,6 @@ def extract_fila(myTimer: func.TimerRequest) -> None:
             logging.info(rows)
 
     except Exception as e:
-        logging.error(f"Erro ao ler itsm.fila: {str(e)}")
+        logging.error(f"Erro ao ler itsm.sla: {str(e)}")
         raise
 
