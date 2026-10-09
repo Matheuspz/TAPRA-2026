@@ -1,6 +1,40 @@
 import datetime
 import logging
-impor
+import requests
+import azure.functions as func
+
+app = func.FunctionApp()
+
+# TIMER TRIGGER
+@app.timer_trigger(schedule="0 */1 * * * *", arg_name="myTimer", run_on_startup=False,
+              use_monitor=False) 
+def timer_trigger_tapra1(myTimer: func.TimerRequest) -> None:
+    if myTimer.past_due:
+        logging.info('Tempo do Timer expirado!')
+
+    logging.info(f'Timer executado em: {datetime.datetime.now()}')
+
+# HTTP TRIGGER
+@app.route(route="http_trigger_tapra2", methods=["GET"], auth_level=func.AuthLevel.ANONYMOUS)
+def http_trigger_tapra2(req: func.HttpRequest) -> func.HttpResponse:
+
+    name = req.params.get("name", "não informado")
+    logging.info(f"Parametro recebido: {name}")
+
+    if not name:
+        try:
+            req_body = req.get_json()
+        except ValueError:
+            pass
+        else:
+            name = req_body.get('name')
+
+    if name:
+        return func.HttpResponse(
+            f"MENSAGEM ENVIADA: OLÁ {name}.", 
+            status_code=200
+        )
+    
     else:
         return func.HttpResponse(
              "Trigger HTTP executado com sucesso, porém sem um parametro.",
