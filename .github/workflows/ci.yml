@@ -1,0 +1,13 @@
+name: CI/DI
+
+on:
+  push:
+    branches: ["main"]
+
+jobs:
+  validar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: python3 --version
+      - run: python3 -m py_compile function_app.py
