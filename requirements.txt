@@ -3,6 +3,10 @@
 # azure-monitor-opentelemetry
 
 azure-functions
+<<<<<<< HEAD
 requests
 logging
 datetime
+=======
+pyodbc
+>>>>>>> azureDatabaseAnalista

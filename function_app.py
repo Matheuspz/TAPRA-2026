@@ -1,82 +1,50 @@
-import datetime
 import logging
-import requests
 import azure.functions as func
+import os
+import pyodbc
 
 app = func.FunctionApp()
 
-# TIMER TRIGGER
-@app.timer_trigger(schedule="0 */1 * * * *", arg_name="myTimer", run_on_startup=False,
+@app.timer_trigger(schedule="0 * * * * *", arg_name="myTimer", run_on_startup=False,
               use_monitor=False) 
-def timer_trigger_tapra1(myTimer: func.TimerRequest) -> None:
-    if myTimer.past_due:
-        logging.info('Tempo do Timer expirado!')
-
-    logging.info(f'Timer executado em: {datetime.datetime.now()}')
-
-# HTTP TRIGGER
-@app.route(route="http_trigger_tapra2", methods=["GET"], auth_level=func.AuthLevel.ANONYMOUS)
-def http_trigger_tapra2(req: func.HttpRequest) -> func.HttpResponse:
-
-    name = req.params.get("name", "não informado")
-    logging.info(f"Parametro recebido: {name}")
-
-    if not name:
-        try:
-            req_body = req.get_json()
-        except ValueError:
-            pass
-        else:
-            name = req_body.get('name')
-
-    if name:
-        return func.HttpResponse(
-            f"MENSAGEM ENVIADA: OLÁ {name}.", 
-            status_code=200
-        )
+def extract_analista(myTimer: func.TimerRequest) -> None:
+    logging.info('tabela analista')
     
-    else:
-        return func.HttpResponse(
-             "Trigger HTTP executado com sucesso, porém sem um parametro.",
-             status_code=200
-        )
+    sql_user = os.getenv("USER", None)
+    sql_pass = os.getenv("PASSWORD", None)
+    sql_server = os.getenv("HOST", None)
+    sql_database = os.getenv("DATABASE", None)
 
-# TIMER HTTP SOLICITAÇÃO
-@app.timer_trigger(schedule="30 * * * * *", arg_name="myTimer", run_on_startup=False,
-              use_monitor=False) 
-def timer_trigger_http_request(myTimer: func.TimerRequest) -> None:
+    logging.info(f'servidor={sql_server}, banco de dados={sql_database}, usuario={sql_user}, senha={sql_pass} ')
 
-    valor = "Abacate"
-    url = f"https://funcapp-tapra-matheus-f6bhcydxeqh7c4eu.eastus-01.azurewebsites.net/api/http_trigger_http_response?valor={valor}"
-    
+    # Configura a string de conexão para o banco de dados SQL Server
+    conn_str = (
+        "DRIVER={ODBC Driver 18 for SQL Server};"
+        f"SERVER={sql_server};"
+        f"DATABASE={sql_database};"
+        f"UID={sql_user};"
+        f"PWD={sql_pass};"
+        "Encrypt=yes;"
+        "TrustServerCertificate=no;"
+        "Connection Timeout=30;"
+    )
+
     try:
-        resposta = requests.get(url, timeout=15)
-        logging.info(f"RESPOSTA: {resposta.text}")
+        # Estabelece a conexão com o banco de dados usando pyodbc
+        with pyodbc.connect(conn_str) as conn:
+            # Cria um cursor para executar a consulta
+            cursor = conn.cursor()
+            
+            query = "select * from itsm.analista"
+
+            # Executa a consulta SQL
+            cursor.execute(query)
+
+            # Busca todos os resultados da consulta
+            rows = cursor.fetchall()
+
+            logging.info(rows)
+
     except Exception as e:
-        logging.error(f"Erro ao chamar função http_trigger_http_response: {str(e)}")
-
-# HTTP RESPOSTA
-@app.route(route="http_trigger_http_response", auth_level=func.AuthLevel.ANONYMOUS)
-def http_trigger_http_response(req: func.HttpRequest) -> func.HttpResponse:
-
-    valor = req.params.get('valor', 'vazio')
-    logging.info(f'Parametro recebido: {valor}')
-
-    if not valor:
-        try:
-            req_body = req.get_json()
-        except ValueError:
-            pass
-        else:
-            valor = req_body.get('valor')
-
-    if valor:
-        return func.HttpResponse(
-            f"SOLICITAÇÃO RECEBIDA: {valor}",
-            status_code=200
-        )
-    else:
-        return func.HttpResponse(
-             "Trigger HTTP executado com sucesso, porém sem um parametro.",
-             status_code=200
-        )
+        logging.error(f"Erro ao ler itsm.analista: {str(e)}")
+        raise
