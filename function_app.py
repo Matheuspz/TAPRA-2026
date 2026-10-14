@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 @app.timer_trigger(
     schedule="0 * * * * *", arg_name="myTimer", run_on_startup=False, use_monitor=False
 )
-def extract_chamado(myTimer: func.TimerRequest) -> None:
+def extract_categoria(myTimer: func.TimerRequest) -> None:
     logger.info("tabela categoria")
 
     sql_user = os.getenv("USER", None)
