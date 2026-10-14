@@ -11,3 +11,6 @@ jobs:
       - uses: actions/checkout@v4
       - run: python3 --version
       - run: python3 -m py_compile function_app.py
+      - run: pip install ruff black isort
+      - run: ruff check function_app.py
+      - run: black --check function_app.py
