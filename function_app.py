@@ -8,7 +8,6 @@ app = func.FunctionApp()
 
 logger = logging.getLogger(__name__)
 
-
 @app.timer_trigger(
     schedule="0 * * * * *", arg_name="myTimer", run_on_startup=False, use_monitor=False
 )
@@ -55,3 +54,4 @@ def extract_analista(myTimer: func.TimerRequest) -> None:
     except Exception as e:
         logger.error(f"Erro ao ler itsm.analista: {e!s}")
         raise
+
