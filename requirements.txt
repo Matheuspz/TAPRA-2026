@@ -1,3 +1,5 @@
 logging
 azure.functions
 pyodbc
+azure.storage.blob
+azure.identity

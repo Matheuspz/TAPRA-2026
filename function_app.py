@@ -1,19 +1,52 @@
+import json
 import logging
 import os
+from datetime import UTC, datetime
 
 import azure.functions as func
 import pyodbc
+from azure.identity import DefaultAzureCredential
+from azure.storage.blob import BlobServiceClient
 
 app = func.FunctionApp()
 
+tabela = "analista"
+
 logger = logging.getLogger(__name__)
+
+storage_conn = os.getenv("STORAGECONN")
+container_name = "bronze"
+
+blob_service_client = BlobServiceClient.from_connection_string(storage_conn)
+
+
+def upload_to_bronze(dados):
+    account_url = f"https://{storage_conn}.blob.core.windows.net"
+
+    credential = DefaultAzureCredential()
+
+    blob_service_client = BlobServiceClient(
+        account_url=account_url, credential=credential
+    )
+
+    timestamp = datetime.now(UTC).strftime("%Y%m%d_%H%M%S")
+    blob_name = f"{tabela}/{timestamp}.json"
+
+    blob_client = blob_service_client.get_blob_client(
+        container=container_name, blob=blob_name
+    )
+
+    conteudo = json.dumps(dados, ensure_ascii=False, default=str)
+
+    blob_client.upload_blob(conteudo.encode("utf-8"), overwrite=True)
+    logger.info(f"Upload concluído: {container_name}/{blob_name}")
 
 
 @app.timer_trigger(
     schedule="0 * * * * *", arg_name="myTimer", run_on_startup=False, use_monitor=False
 )
 def extract_analista(myTimer: func.TimerRequest) -> None:
-    logger.info("tabela analista")
+    logger.info(f"tabela {tabela}")
 
     sql_user = os.getenv("USER", None)
     sql_pass = os.getenv("PASSWORD", None)
@@ -42,7 +75,7 @@ def extract_analista(myTimer: func.TimerRequest) -> None:
             # Cria um cursor para executar a consulta
             cursor = conn.cursor()
 
-            query = "select * from itsm.analista"
+            query = f"select * from itsm.{tabela}"
 
             # Executa a consulta SQL
             cursor.execute(query)
@@ -50,8 +83,10 @@ def extract_analista(myTimer: func.TimerRequest) -> None:
             # Busca todos os resultados da consulta
             rows = cursor.fetchall()
 
-            logger.info(rows)
+            # ENVIA PARA O BLOB STORAGE bronze
+            upload_to_bronze(rows)
+            logger.info("Enviado para o blob")
 
     except Exception as e:
-        logger.error(f"Erro ao ler itsm.analista: {e!s}")
+        logger.error(f"Erro ao ler itsm.{tabela}: {e!s}")
         raise
