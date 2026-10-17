@@ -1,7 +1,7 @@
 import json
 import logging
 import os
-from datetime import UTC, datetime
+from datetime import datetime, timedelta, timezone
 
 import azure.functions as func
 import pyodbc
@@ -28,7 +28,9 @@ def upload_to_bronze(dados):
         account_url=account_url, credential=credential
     )
 
-    now = datetime.now(UTC - 3)
+    utc_menos_3 = timezone(timedelta(hours=-3))
+
+    now = datetime.now(utc_menos_3)
     year = now.strftime("%Y")
     day = now.strftime("%d")
     mounth = now.strftime("%m")
