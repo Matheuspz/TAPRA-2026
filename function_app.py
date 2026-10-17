@@ -14,14 +14,13 @@ tabela = "analista"
 
 logger = logging.getLogger(__name__)
 
+blob_url = os.getenv("BLOBURL")
 storage_conn = os.getenv("STORAGECONN")
 container_name = "bronze"
 
-blob_service_client = BlobServiceClient.from_connection_string(storage_conn)
-
 
 def upload_to_bronze(dados):
-    account_url = f"https://{storage_conn}.blob.core.windows.net"
+    account_url = f"https://{blob_url}.blob.core.windows.net"
 
     credential = DefaultAzureCredential()
 
