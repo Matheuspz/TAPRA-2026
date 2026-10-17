@@ -28,8 +28,14 @@ def upload_to_bronze(dados):
         account_url=account_url, credential=credential
     )
 
-    timestamp = datetime.now(UTC).strftime("%Y%m%d_%H%M%S")
-    blob_name = f"{tabela}/{timestamp}.json"
+    now = datetime.now(UTC)
+    year = now.strftime("%Y")
+    day = now.strftime("%d")
+    mounth = now.strftime("%m")
+
+    blob_name = (
+        f"itsm/{tabela}/{year}/{mounth}/{day}/{tabela}_{year}+{mounth}+{day}.json"
+    )
 
     blob_client = blob_service_client.get_blob_client(
         container=container_name, blob=blob_name
@@ -42,7 +48,7 @@ def upload_to_bronze(dados):
 
 
 @app.timer_trigger(
-    schedule="0 * * * * *", arg_name="myTimer", run_on_startup=False, use_monitor=False
+    schedule="* 1 * * * *", arg_name="myTimer", run_on_startup=False, use_monitor=False
 )
 def extract_analista(myTimer: func.TimerRequest) -> None:
     logger.info(f"tabela {tabela}")
