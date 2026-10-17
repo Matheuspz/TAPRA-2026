@@ -28,14 +28,12 @@ def upload_to_bronze(dados):
         account_url=account_url, credential=credential
     )
 
-    now = datetime.now(UTC)
+    now = datetime.now(UTC - 3)
     year = now.strftime("%Y")
     day = now.strftime("%d")
     mounth = now.strftime("%m")
 
-    blob_name = (
-        f"itsm/{tabela}/{year}/{mounth}/{day}/{tabela}_{year}+{mounth}+{day}.json"
-    )
+    blob_name = f"itsm/{tabela}/{year}/{mounth}/{day}/{tabela}_{year}{mounth}{day}.json"
 
     blob_client = blob_service_client.get_blob_client(
         container=container_name, blob=blob_name
