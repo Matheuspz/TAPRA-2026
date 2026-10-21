@@ -10,20 +10,6 @@ from azure.storage.blob import BlobServiceClient
 
 app = func.FunctionApp()
 
-tabelas = [
-    "analista",  # 0
-    "categoria",  # 1
-    "chamado",  # 2
-    "chamado_sla",  # 3
-    "chamado_status_historico",  # 4
-    "cliente_organizacao",  # 5
-    "csta_avaliacao",  # 6
-    "fila",  # 7
-    "sla",  # 8
-    "solicitante",  # 9
-]
-tabela = tabelas[9]
-
 logger = logging.getLogger(__name__)
 
 blob_url = os.getenv("BLOBURL")
@@ -31,7 +17,7 @@ storage_conn = os.getenv("STORAGECONN")
 container_name = "bronze"
 
 
-def upload_to_bronze(dados):
+def upload_to_bronze(dados, tabela):
     account_url = f"https://{blob_url}.blob.core.windows.net"
 
     credential = DefaultAzureCredential()
@@ -59,10 +45,14 @@ def upload_to_bronze(dados):
     logger.info(f"Upload concluído: {container_name}/{blob_name}")
 
 
+########## ------------------- ANALISTA ------------------- ##########
 @app.timer_trigger(
     schedule="* 1 * * * *", arg_name="myTimer", run_on_startup=False, use_monitor=False
 )
-def extract_db(myTimer: func.TimerRequest) -> None:
+def extract_analista(myTimer: func.TimerRequest) -> None:
+
+    tabela = "analista"
+
     logger.info(f"tabela {tabela}")
 
     sql_user = os.getenv("USER", None)
@@ -101,7 +91,493 @@ def extract_db(myTimer: func.TimerRequest) -> None:
             rows = cursor.fetchall()
 
             # ENVIA PARA O BLOB STORAGE bronze
-            upload_to_bronze(rows)
+            upload_to_bronze(rows, tabela)
+            logger.info("Enviado para o blob")
+
+    except Exception as e:
+        logger.error(f"Erro ao ler itsm.{tabela}: {e!s}")
+        raise
+
+
+########## ------------------- CATEGORIA ------------------- ##########
+@app.timer_trigger(
+    schedule="* 1 * * * *", arg_name="myTimer", run_on_startup=False, use_monitor=False
+)
+def extract_categoria(myTimer: func.TimerRequest) -> None:
+
+    tabela = "categoria"
+
+    logger.info(f"tabela {tabela}")
+
+    sql_user = os.getenv("USER", None)
+    sql_pass = os.getenv("PASSWORD", None)
+    sql_server = os.getenv("HOST", None)
+    sql_database = os.getenv("DATABASE", None)
+
+    logger.info(
+        f"servidor={sql_server}, banco de dados={sql_database}, usuario={sql_user}, senha={sql_pass} "
+    )
+
+    # Configura a string de conexão para o banco de dados SQL Server
+    conn_str = (
+        "DRIVER={ODBC Driver 18 for SQL Server};"
+        f"SERVER={sql_server};"
+        f"DATABASE={sql_database};"
+        f"UID={sql_user};"
+        f"PWD={sql_pass};"
+        "Encrypt=yes;"
+        "TrustServerCertificate=no;"
+        "Connection Timeout=30;"
+    )
+
+    try:
+        # Estabelece a conexão com o banco de dados usando pyodbc
+        with pyodbc.connect(conn_str) as conn:
+            # Cria um cursor para executar a consulta
+            cursor = conn.cursor()
+
+            query = f"select * from itsm.{tabela}"
+
+            # Executa a consulta SQL
+            cursor.execute(query)
+
+            # Busca todos os resultados da consulta
+            rows = cursor.fetchall()
+
+            # ENVIA PARA O BLOB STORAGE bronze
+            upload_to_bronze(rows, tabela)
+            logger.info("Enviado para o blob")
+
+    except Exception as e:
+        logger.error(f"Erro ao ler itsm.{tabela}: {e!s}")
+        raise
+
+
+########## ------------------- CHAMADO ------------------- ##########
+@app.timer_trigger(
+    schedule="* 1 * * * *", arg_name="myTimer", run_on_startup=False, use_monitor=False
+)
+def extract_chamado(myTimer: func.TimerRequest) -> None:
+
+    tabela = "chamado"
+
+    logger.info(f"tabela {tabela}")
+
+    sql_user = os.getenv("USER", None)
+    sql_pass = os.getenv("PASSWORD", None)
+    sql_server = os.getenv("HOST", None)
+    sql_database = os.getenv("DATABASE", None)
+
+    logger.info(
+        f"servidor={sql_server}, banco de dados={sql_database}, usuario={sql_user}, senha={sql_pass} "
+    )
+
+    # Configura a string de conexão para o banco de dados SQL Server
+    conn_str = (
+        "DRIVER={ODBC Driver 18 for SQL Server};"
+        f"SERVER={sql_server};"
+        f"DATABASE={sql_database};"
+        f"UID={sql_user};"
+        f"PWD={sql_pass};"
+        "Encrypt=yes;"
+        "TrustServerCertificate=no;"
+        "Connection Timeout=30;"
+    )
+
+    try:
+        # Estabelece a conexão com o banco de dados usando pyodbc
+        with pyodbc.connect(conn_str) as conn:
+            # Cria um cursor para executar a consulta
+            cursor = conn.cursor()
+
+            query = f"select * from itsm.{tabela}"
+
+            # Executa a consulta SQL
+            cursor.execute(query)
+
+            # Busca todos os resultados da consulta
+            rows = cursor.fetchall()
+
+            # ENVIA PARA O BLOB STORAGE bronze
+            upload_to_bronze(rows, tabela)
+            logger.info("Enviado para o blob")
+
+    except Exception as e:
+        logger.error(f"Erro ao ler itsm.{tabela}: {e!s}")
+        raise
+
+
+########## ------------------- CHAMADO_SLA ------------------- ##########
+@app.timer_trigger(
+    schedule="* 1 * * * *", arg_name="myTimer", run_on_startup=False, use_monitor=False
+)
+def extract_chamado_sla(myTimer: func.TimerRequest) -> None:
+
+    tabela = "chamado_sla"
+
+    logger.info(f"tabela {tabela}")
+
+    sql_user = os.getenv("USER", None)
+    sql_pass = os.getenv("PASSWORD", None)
+    sql_server = os.getenv("HOST", None)
+    sql_database = os.getenv("DATABASE", None)
+
+    logger.info(
+        f"servidor={sql_server}, banco de dados={sql_database}, usuario={sql_user}, senha={sql_pass} "
+    )
+
+    # Configura a string de conexão para o banco de dados SQL Server
+    conn_str = (
+        "DRIVER={ODBC Driver 18 for SQL Server};"
+        f"SERVER={sql_server};"
+        f"DATABASE={sql_database};"
+        f"UID={sql_user};"
+        f"PWD={sql_pass};"
+        "Encrypt=yes;"
+        "TrustServerCertificate=no;"
+        "Connection Timeout=30;"
+    )
+
+    try:
+        # Estabelece a conexão com o banco de dados usando pyodbc
+        with pyodbc.connect(conn_str) as conn:
+            # Cria um cursor para executar a consulta
+            cursor = conn.cursor()
+
+            query = f"select * from itsm.{tabela}"
+
+            # Executa a consulta SQL
+            cursor.execute(query)
+
+            # Busca todos os resultados da consulta
+            rows = cursor.fetchall()
+
+            # ENVIA PARA O BLOB STORAGE bronze
+            upload_to_bronze(rows, tabela)
+            logger.info("Enviado para o blob")
+
+    except Exception as e:
+        logger.error(f"Erro ao ler itsm.{tabela}: {e!s}")
+        raise
+
+
+########## ------------------- CHAMADO_STATUS_HISTÓRICO ------------------- ##########
+@app.timer_trigger(
+    schedule="* 1 * * * *", arg_name="myTimer", run_on_startup=False, use_monitor=False
+)
+def extract_chamado_status_historico(myTimer: func.TimerRequest) -> None:
+
+    tabela = "chamado_status_historico"
+
+    logger.info(f"tabela {tabela}")
+
+    sql_user = os.getenv("USER", None)
+    sql_pass = os.getenv("PASSWORD", None)
+    sql_server = os.getenv("HOST", None)
+    sql_database = os.getenv("DATABASE", None)
+
+    logger.info(
+        f"servidor={sql_server}, banco de dados={sql_database}, usuario={sql_user}, senha={sql_pass} "
+    )
+
+    # Configura a string de conexão para o banco de dados SQL Server
+    conn_str = (
+        "DRIVER={ODBC Driver 18 for SQL Server};"
+        f"SERVER={sql_server};"
+        f"DATABASE={sql_database};"
+        f"UID={sql_user};"
+        f"PWD={sql_pass};"
+        "Encrypt=yes;"
+        "TrustServerCertificate=no;"
+        "Connection Timeout=30;"
+    )
+
+    try:
+        # Estabelece a conexão com o banco de dados usando pyodbc
+        with pyodbc.connect(conn_str) as conn:
+            # Cria um cursor para executar a consulta
+            cursor = conn.cursor()
+
+            query = f"select * from itsm.{tabela}"
+
+            # Executa a consulta SQL
+            cursor.execute(query)
+
+            # Busca todos os resultados da consulta
+            rows = cursor.fetchall()
+
+            # ENVIA PARA O BLOB STORAGE bronze
+            upload_to_bronze(rows, tabela)
+            logger.info("Enviado para o blob")
+
+    except Exception as e:
+        logger.error(f"Erro ao ler itsm.{tabela}: {e!s}")
+        raise
+
+
+########## ------------------- CLIENTE_ORGANIZACAO ------------------- ##########
+@app.timer_trigger(
+    schedule="* 1 * * * *", arg_name="myTimer", run_on_startup=False, use_monitor=False
+)
+def extract_cliente_organizacao(myTimer: func.TimerRequest) -> None:
+
+    tabela = "cliente_organizacao"
+
+    logger.info(f"tabela {tabela}")
+
+    sql_user = os.getenv("USER", None)
+    sql_pass = os.getenv("PASSWORD", None)
+    sql_server = os.getenv("HOST", None)
+    sql_database = os.getenv("DATABASE", None)
+
+    logger.info(
+        f"servidor={sql_server}, banco de dados={sql_database}, usuario={sql_user}, senha={sql_pass} "
+    )
+
+    # Configura a string de conexão para o banco de dados SQL Server
+    conn_str = (
+        "DRIVER={ODBC Driver 18 for SQL Server};"
+        f"SERVER={sql_server};"
+        f"DATABASE={sql_database};"
+        f"UID={sql_user};"
+        f"PWD={sql_pass};"
+        "Encrypt=yes;"
+        "TrustServerCertificate=no;"
+        "Connection Timeout=30;"
+    )
+
+    try:
+        # Estabelece a conexão com o banco de dados usando pyodbc
+        with pyodbc.connect(conn_str) as conn:
+            # Cria um cursor para executar a consulta
+            cursor = conn.cursor()
+
+            query = f"select * from itsm.{tabela}"
+
+            # Executa a consulta SQL
+            cursor.execute(query)
+
+            # Busca todos os resultados da consulta
+            rows = cursor.fetchall()
+
+            # ENVIA PARA O BLOB STORAGE bronze
+            upload_to_bronze(rows, tabela)
+            logger.info("Enviado para o blob")
+
+    except Exception as e:
+        logger.error(f"Erro ao ler itsm.{tabela}: {e!s}")
+        raise
+
+
+########## ------------------- CSAT_AVALIACAO ------------------- ##########
+@app.timer_trigger(
+    schedule="* 1 * * * *", arg_name="myTimer", run_on_startup=False, use_monitor=False
+)
+def extract_csta_avaliacao(myTimer: func.TimerRequest) -> None:
+
+    tabela = "csta_avaliacao"
+
+    logger.info(f"tabela {tabela}")
+
+    sql_user = os.getenv("USER", None)
+    sql_pass = os.getenv("PASSWORD", None)
+    sql_server = os.getenv("HOST", None)
+    sql_database = os.getenv("DATABASE", None)
+
+    logger.info(
+        f"servidor={sql_server}, banco de dados={sql_database}, usuario={sql_user}, senha={sql_pass} "
+    )
+
+    # Configura a string de conexão para o banco de dados SQL Server
+    conn_str = (
+        "DRIVER={ODBC Driver 18 for SQL Server};"
+        f"SERVER={sql_server};"
+        f"DATABASE={sql_database};"
+        f"UID={sql_user};"
+        f"PWD={sql_pass};"
+        "Encrypt=yes;"
+        "TrustServerCertificate=no;"
+        "Connection Timeout=30;"
+    )
+
+    try:
+        # Estabelece a conexão com o banco de dados usando pyodbc
+        with pyodbc.connect(conn_str) as conn:
+            # Cria um cursor para executar a consulta
+            cursor = conn.cursor()
+
+            query = f"select * from itsm.{tabela}"
+
+            # Executa a consulta SQL
+            cursor.execute(query)
+
+            # Busca todos os resultados da consulta
+            rows = cursor.fetchall()
+
+            # ENVIA PARA O BLOB STORAGE bronze
+            upload_to_bronze(rows, tabela)
+            logger.info("Enviado para o blob")
+
+    except Exception as e:
+        logger.error(f"Erro ao ler itsm.{tabela}: {e!s}")
+        raise
+
+
+########## ------------------- FILA ------------------- ##########
+@app.timer_trigger(
+    schedule="* 1 * * * *", arg_name="myTimer", run_on_startup=False, use_monitor=False
+)
+def extract_fila(myTimer: func.TimerRequest) -> None:
+
+    tabela = "fila"
+
+    logger.info(f"tabela {tabela}")
+
+    sql_user = os.getenv("USER", None)
+    sql_pass = os.getenv("PASSWORD", None)
+    sql_server = os.getenv("HOST", None)
+    sql_database = os.getenv("DATABASE", None)
+
+    logger.info(
+        f"servidor={sql_server}, banco de dados={sql_database}, usuario={sql_user}, senha={sql_pass} "
+    )
+
+    # Configura a string de conexão para o banco de dados SQL Server
+    conn_str = (
+        "DRIVER={ODBC Driver 18 for SQL Server};"
+        f"SERVER={sql_server};"
+        f"DATABASE={sql_database};"
+        f"UID={sql_user};"
+        f"PWD={sql_pass};"
+        "Encrypt=yes;"
+        "TrustServerCertificate=no;"
+        "Connection Timeout=30;"
+    )
+
+    try:
+        # Estabelece a conexão com o banco de dados usando pyodbc
+        with pyodbc.connect(conn_str) as conn:
+            # Cria um cursor para executar a consulta
+            cursor = conn.cursor()
+
+            query = f"select * from itsm.{tabela}"
+
+            # Executa a consulta SQL
+            cursor.execute(query)
+
+            # Busca todos os resultados da consulta
+            rows = cursor.fetchall()
+
+            # ENVIA PARA O BLOB STORAGE bronze
+            upload_to_bronze(rows, tabela)
+            logger.info("Enviado para o blob")
+
+    except Exception as e:
+        logger.error(f"Erro ao ler itsm.{tabela}: {e!s}")
+        raise
+
+
+########## ------------------- SLA ------------------- ##########
+@app.timer_trigger(
+    schedule="* 1 * * * *", arg_name="myTimer", run_on_startup=False, use_monitor=False
+)
+def extract_sla(myTimer: func.TimerRequest) -> None:
+
+    tabela = "sla"
+
+    logger.info(f"tabela {tabela}")
+
+    sql_user = os.getenv("USER", None)
+    sql_pass = os.getenv("PASSWORD", None)
+    sql_server = os.getenv("HOST", None)
+    sql_database = os.getenv("DATABASE", None)
+
+    logger.info(
+        f"servidor={sql_server}, banco de dados={sql_database}, usuario={sql_user}, senha={sql_pass} "
+    )
+
+    # Configura a string de conexão para o banco de dados SQL Server
+    conn_str = (
+        "DRIVER={ODBC Driver 18 for SQL Server};"
+        f"SERVER={sql_server};"
+        f"DATABASE={sql_database};"
+        f"UID={sql_user};"
+        f"PWD={sql_pass};"
+        "Encrypt=yes;"
+        "TrustServerCertificate=no;"
+        "Connection Timeout=30;"
+    )
+
+    try:
+        # Estabelece a conexão com o banco de dados usando pyodbc
+        with pyodbc.connect(conn_str) as conn:
+            # Cria um cursor para executar a consulta
+            cursor = conn.cursor()
+
+            query = f"select * from itsm.{tabela}"
+
+            # Executa a consulta SQL
+            cursor.execute(query)
+
+            # Busca todos os resultados da consulta
+            rows = cursor.fetchall()
+
+            # ENVIA PARA O BLOB STORAGE bronze
+            upload_to_bronze(rows, tabela)
+            logger.info("Enviado para o blob")
+
+    except Exception as e:
+        logger.error(f"Erro ao ler itsm.{tabela}: {e!s}")
+        raise
+
+
+########## ------------------- SOLICITANTE ------------------- ##########
+@app.timer_trigger(
+    schedule="* 1 * * * *", arg_name="myTimer", run_on_startup=False, use_monitor=False
+)
+def extract_solicitante(myTimer: func.TimerRequest) -> None:
+
+    tabela = "solicitante"
+
+    logger.info(f"tabela {tabela}")
+
+    sql_user = os.getenv("USER", None)
+    sql_pass = os.getenv("PASSWORD", None)
+    sql_server = os.getenv("HOST", None)
+    sql_database = os.getenv("DATABASE", None)
+
+    logger.info(
+        f"servidor={sql_server}, banco de dados={sql_database}, usuario={sql_user}, senha={sql_pass} "
+    )
+
+    # Configura a string de conexão para o banco de dados SQL Server
+    conn_str = (
+        "DRIVER={ODBC Driver 18 for SQL Server};"
+        f"SERVER={sql_server};"
+        f"DATABASE={sql_database};"
+        f"UID={sql_user};"
+        f"PWD={sql_pass};"
+        "Encrypt=yes;"
+        "TrustServerCertificate=no;"
+        "Connection Timeout=30;"
+    )
+
+    try:
+        # Estabelece a conexão com o banco de dados usando pyodbc
+        with pyodbc.connect(conn_str) as conn:
+            # Cria um cursor para executar a consulta
+            cursor = conn.cursor()
+
+            query = f"select * from itsm.{tabela}"
+
+            # Executa a consulta SQL
+            cursor.execute(query)
+
+            # Busca todos os resultados da consulta
+            rows = cursor.fetchall()
+
+            # ENVIA PARA O BLOB STORAGE bronze
+            upload_to_bronze(rows, tabela)
             logger.info("Enviado para o blob")
 
     except Exception as e:
