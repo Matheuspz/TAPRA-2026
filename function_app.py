@@ -10,7 +10,17 @@ from azure.storage.blob import BlobServiceClient
 
 app = func.FunctionApp()
 
-tabela = "analista"
+tabelas = ["analista", # 0
+           "categoria", # 1 
+           "chamado", # 2
+           "chamado_sla", # 3 
+           "chamado_status_historico", # 4 
+           "cliente_organizacao", # 5
+           "csta_avaliacao", # 6
+           "fila", # 7
+           "sla", # 8
+           "solicitante"] # 9
+tabela = tabelas[9]
 
 logger = logging.getLogger(__name__)
 
@@ -50,7 +60,7 @@ def upload_to_bronze(dados):
 @app.timer_trigger(
     schedule="* 1 * * * *", arg_name="myTimer", run_on_startup=False, use_monitor=False
 )
-def extract_analista(myTimer: func.TimerRequest) -> None:
+def extract_db(myTimer: func.TimerRequest) -> None:
     logger.info(f"tabela {tabela}")
 
     sql_user = os.getenv("USER", None)
