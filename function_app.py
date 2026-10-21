@@ -10,16 +10,18 @@ from azure.storage.blob import BlobServiceClient
 
 app = func.FunctionApp()
 
-tabelas = ["analista", # 0
-           "categoria", # 1 
-           "chamado", # 2
-           "chamado_sla", # 3 
-           "chamado_status_historico", # 4 
-           "cliente_organizacao", # 5
-           "csta_avaliacao", # 6
-           "fila", # 7
-           "sla", # 8
-           "solicitante"] # 9
+tabelas = [
+    "analista",  # 0
+    "categoria",  # 1
+    "chamado",  # 2
+    "chamado_sla",  # 3
+    "chamado_status_historico",  # 4
+    "cliente_organizacao",  # 5
+    "csta_avaliacao",  # 6
+    "fila",  # 7
+    "sla",  # 8
+    "solicitante",  # 9
+]
 tabela = tabelas[9]
 
 logger = logging.getLogger(__name__)
