@@ -128,8 +128,8 @@ def extract_cliente_organizacao(myTimer: func.TimerRequest) -> None:
 @app.timer_trigger(
     schedule="* 1 * * * *", arg_name="myTimer", run_on_startup=False, use_monitor=False
 )
-def extract_csta_avaliacao(myTimer: func.TimerRequest) -> None:
-    extrair_tabela("csta_avaliacao")
+def extract_csat_avaliacao(myTimer: func.TimerRequest) -> None:
+    extrair_tabela("csat_avaliacao")
 
 
 ########## ------------------- FILA ------------------- ##########
