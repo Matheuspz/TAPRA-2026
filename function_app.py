@@ -8,6 +8,7 @@ import azure.functions as func
 import pyodbc
 from azure.identity import DefaultAzureCredential
 from azure.storage.blob import BlobServiceClient
+import pandas as pd
 
 app = func.FunctionApp()
 
@@ -17,6 +18,21 @@ blob_url = os.getenv("BLOBURL")
 storage_conn = os.getenv("STORAGECONN")
 container_name = "bronze"
 
+dst_user = os.getenv("USER")
+dst_pass = os.getenv("PASSWORD")
+dst_server = os.getenv("HOST")
+dst_database = os.getenv("DATABASE")
+
+conn_str = (
+    "Driver={ODBC Driver 18 for SQL Server};"
+    f"Server=tcp:{dst_server};" 
+    f"Database={dst_database};"
+    f"Uid={dst_user};"
+    f"Pwd={dst_pass};"
+    "Encrypt=yes;"
+    "TrustServerCertificate=no;"
+    "Connection Timeout=30;"
+)
 
 def upload_to_bronze(colunas, rows, tabela):
     account_url = f"https://{blob_url}.blob.core.windows.net"
@@ -46,7 +62,6 @@ def upload_to_bronze(colunas, rows, tabela):
     blob_client.upload_blob(buffer.getvalue().encode("utf-8-sig"), overwrite=True)
     logger.info(f"Upload concluído: {container_name}/{blob_name}")
 
-
 def extrair_tabela(tabela: str):
     sql_user = os.getenv("USER")
     sql_pass = os.getenv("PASSWORD")
@@ -75,6 +90,55 @@ def extrair_tabela(tabela: str):
         logger.error(f"Erro ao ler itsm.{tabela}: {e!s}")
         raise
 
+@app.blob_trigger(arg_name="myblob", path="bronze/itsm/analista/{ano}/{mes}/{dia}/{nome_arquivo}",
+                               connection="adlstapra2026matheus_STORAGE") 
+def insert_analista(myblob: func.InputStream):
+
+    caminho = myblob.name
+    partes = myblob.name.split("/")
+
+    tabela = "analista"
+    ano = partes[3]
+    mes = partes[4]
+    dia = partes[5]
+    arquivo = partes[6]
+
+    df = pd.read_csv(io.BytesIO(myblob.read()))
+
+    sql = f"""
+        MERGE INTO itsm.analista AS destino
+        USING itsm.Staging_analista AS origem
+            ON destino.id = origem.id
+
+        WHEN MATCHED THEN
+            UPDATE SET
+                destino.id_analista = origem.id_analista
+                destino.cd_analista = origem.cd_analista
+                destino.nm_analista = origem.nm_analista
+                destino.ds_email = origem.ds_email
+                destino.ds_nivel = origem.ds_nivel
+                destino.id_fila_atual = origem.id_fila_atual
+                destino.fl_ativo = origem.fl_ativo
+                destino.dt_inclusao = origem.dt_inclusao
+                destino.dt_atualizacao = origem.dt_atualizacao
+                destino.nm_sistema_origem = origem.nm_sistema_origem
+                destino.cd_registro_origem = origem.cd_registro_origem
+
+        WHEN NOT MATCHED BY TARGET THEN
+            INSERT (id, nome)
+            VALUES (origem.id, origem.nome);
+    """
+
+    try:
+        with pyodbc.connect(conn_str) as conn:
+            cursor = conn.cursor()
+            cursor.execute(f"select * from itsm.{tabela}")
+            colunas = [c[0] for c in cursor.description]
+            rows = cursor.fetchall()
+            upload_to_bronze(colunas, rows, tabela)
+    except Exception as e:
+        logger.error(f"Erro ao ler itsm.{tabela}: {e!s}")
+        raise
 
 ########## ------------------- ANALISTA ------------------- ##########
 @app.timer_trigger(
