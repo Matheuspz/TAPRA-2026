@@ -52,6 +52,7 @@ src_conn_str = (
 
 ########## EXTRAçÃO de Dados ##########
 
+
 def upload_to_bronze(colunas, rows, tabela):
     account_url = f"https://{blob_url}.blob.core.windows.net"
     credential = DefaultAzureCredential()
@@ -79,6 +80,7 @@ def upload_to_bronze(colunas, rows, tabela):
 
     blob_client.upload_blob(buffer.getvalue().encode("utf-8-sig"), overwrite=True)
     logger.info(f"Upload concluído: {container_name}/{blob_name}")
+
 
 def extrair_tabela(tabela: str):
     try:
@@ -161,6 +163,7 @@ def extract_sla(myTimer: func.TimerRequest) -> None:
 )
 def extract_solicitante(myTimer: func.TimerRequest) -> None:
     extrair_tabela("solicitante")
+
 
 ########## INSERÇÃO de Dados ##########
 
@@ -321,6 +324,7 @@ TABELAS = {
     },
 }
 
+
 def inserir_tabela(tabela, colunas, sql_temp, sql_merge, myblob, dados):
     try:
         with pyodbc.connect(dst_conn_str) as conn:
@@ -341,11 +345,12 @@ def inserir_tabela(tabela, colunas, sql_temp, sql_merge, myblob, dados):
         logger.error(f"Erro ao carregar {myblob.name}: {e!s}")
         raise
 
+
 def montar_sql(tabela: str, colunas: list[str]):
     """Gera o #staging e o MERGE a partir da lista de colunas (1ª = chave)."""
     pk, resto = colunas[0], colunas[1:]
     temp = f"#Staging_{tabela}"
- 
+
     # "+ 0" remove a propriedade IDENTITY na temporária, permitindo inserir o id
     sql_temp = f"""
         SELECT TOP 0
@@ -354,7 +359,7 @@ def montar_sql(tabela: str, colunas: list[str]):
         INTO {temp}
         FROM itsm.{tabela}
     """
- 
+
     sets = ",\n                ".join(f"destino.{c} = origem.{c}" for c in resto)
     sql_merge = f"""
         MERGE INTO itsm.{tabela} AS destino
@@ -371,28 +376,29 @@ def montar_sql(tabela: str, colunas: list[str]):
     """
     return temp, sql_temp, sql_merge
 
+
 def carregar_csv(myblob: func.InputStream, tabela: str):
     cfg = TABELAS[tabela]
     colunas = cfg["colunas"]
     logger.info(f"Processando {myblob.name}")
- 
+
     df = pd.read_csv(
         io.BytesIO(myblob.read()),
         encoding="utf-8-sig",
         dtype=cfg.get("dtype"),
     )
- 
+
     faltando = set(colunas) - set(df.columns)
     if faltando:
         raise ValueError(f"Colunas ausentes no CSV: {faltando}")
- 
+
     df = df[colunas]
     df = df.astype(object).where(df.notna(), None)
     dados = [tuple(r) for r in df.itertuples(index=False, name=None)]
- 
+
     temp, sql_temp, sql_merge = montar_sql(tabela, colunas)
     inserir_tabela(temp, colunas, sql_temp, sql_merge, myblob, dados)
- 
+
 
 @app.blob_trigger(
     arg_name="myblob",
@@ -446,6 +452,7 @@ def insert_chamado_status_historico(myblob: func.InputStream):
 )
 def insert_cliente_organizacao(myblob: func.InputStream):
     carregar_csv(myblob, "cliente_organizacao")
+
 
 @app.blob_trigger(
     arg_name="myblob",
