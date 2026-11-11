@@ -404,6 +404,7 @@ def carregar_csv(myblob: func.InputStream, tabela: str):
     arg_name="myblob",
     path="bronze/itsm/analista/{ano}/{mes}/{dia}/{nome_arquivo}",
     connection="adlstapra2026matheus_STORAGE",
+    source="EventGrid",
 )
 def insert_analista(myblob: func.InputStream):
     carregar_csv(myblob, "analista")
@@ -413,6 +414,7 @@ def insert_analista(myblob: func.InputStream):
     arg_name="myblob",
     path="bronze/itsm/categoria/{ano}/{mes}/{dia}/{nome_arquivo}",
     connection="adlstapra2026matheus_STORAGE",
+    source="EventGrid",
 )
 def insert_categoria(myblob: func.InputStream):
     carregar_csv(myblob, "categoria")
@@ -422,6 +424,7 @@ def insert_categoria(myblob: func.InputStream):
     arg_name="myblob",
     path="bronze/itsm/chamado/{ano}/{mes}/{dia}/{nome_arquivo}",
     connection="adlstapra2026matheus_STORAGE",
+    source="EventGrid",
 )
 def insert_chamado(myblob: func.InputStream):
     carregar_csv(myblob, "chamado")
@@ -431,6 +434,7 @@ def insert_chamado(myblob: func.InputStream):
     arg_name="myblob",
     path="bronze/itsm/chamado_sla/{ano}/{mes}/{dia}/{nome_arquivo}",
     connection="adlstapra2026matheus_STORAGE",
+    source="EventGrid",
 )
 def insert_chamado_sla(myblob: func.InputStream):
     carregar_csv(myblob, "chamado_sla")
@@ -440,6 +444,7 @@ def insert_chamado_sla(myblob: func.InputStream):
     arg_name="myblob",
     path="bronze/itsm/chamado_status_historico/{ano}/{mes}/{dia}/{nome_arquivo}",
     connection="adlstapra2026matheus_STORAGE",
+    source="EventGrid",
 )
 def insert_chamado_status_historico(myblob: func.InputStream):
     carregar_csv(myblob, "chamado_status_historico")
@@ -449,6 +454,7 @@ def insert_chamado_status_historico(myblob: func.InputStream):
     arg_name="myblob",
     path="bronze/itsm/cliente_organizacao/{ano}/{mes}/{dia}/{nome_arquivo}",
     connection="adlstapra2026matheus_STORAGE",
+    source="EventGrid",
 )
 def insert_cliente_organizacao(myblob: func.InputStream):
     carregar_csv(myblob, "cliente_organizacao")
@@ -458,6 +464,7 @@ def insert_cliente_organizacao(myblob: func.InputStream):
     arg_name="myblob",
     path="bronze/itsm/csat_avaliacao/{ano}/{mes}/{dia}/{nome_arquivo}",
     connection="adlstapra2026matheus_STORAGE",
+    source="EventGrid",
 )
 def insert_csat_avaliacao(myblob: func.InputStream):
     carregar_csv(myblob, "csat_avaliacao")
@@ -467,6 +474,7 @@ def insert_csat_avaliacao(myblob: func.InputStream):
     arg_name="myblob",
     path="bronze/itsm/fila/{ano}/{mes}/{dia}/{nome_arquivo}",
     connection="adlstapra2026matheus_STORAGE",
+    source="EventGrid",
 )
 def insert_fila(myblob: func.InputStream):
     carregar_csv(myblob, "fila")
@@ -476,6 +484,7 @@ def insert_fila(myblob: func.InputStream):
     arg_name="myblob",
     path="bronze/itsm/sla/{ano}/{mes}/{dia}/{nome_arquivo}",
     connection="adlstapra2026matheus_STORAGE",
+    source="EventGrid",
 )
 def insert_sla(myblob: func.InputStream):
     carregar_csv(myblob, "sla")
@@ -485,6 +494,7 @@ def insert_sla(myblob: func.InputStream):
     arg_name="myblob",
     path="bronze/itsm/solicitante/{ano}/{mes}/{dia}/{nome_arquivo}",
     connection="adlstapra2026matheus_STORAGE",
+    source="EventGrid",
 )
 def insert_solicitante(myblob: func.InputStream):
     carregar_csv(myblob, "solicitante")
