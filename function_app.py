@@ -50,9 +50,6 @@ src_conn_str = (
     "Connection Timeout=30;"
 )
 
-########## EXTRAçÃO de Dados ##########
-
-
 def upload_to_bronze(colunas, rows, tabela):
     account_url = f"https://{blob_url}.blob.core.windows.net"
     credential = DefaultAzureCredential()
@@ -94,6 +91,159 @@ def extrair_tabela(tabela: str):
         logger.error(f"Erro ao ler itsm.{tabela}: {e!s}")
         raise
 
+def get_blob_service_client():
+    account_url = f"https://{blob_url}.blob.core.windows.net"
+    credential = DefaultAzureCredential()
+    return BlobServiceClient(account_url=account_url, credential=credential)
+
+
+def get_latest_bronze_blob(tabela: str) -> str | None:
+    """Retorna o nome do blob mais recente da tabela no container bronze."""
+    client = get_blob_service_client()
+    container_client = client.get_container_client(container_name)
+
+    prefix = f"itsm/{tabela}/"
+    blobs = list(container_client.list_blobs(name_starts_with=prefix))
+
+    if not blobs:
+        logger.warning(f"Nenhum arquivo encontrado no bronze para a tabela: {tabela}")
+        return None
+
+    # Pega o mais recente pelo nome do blob
+    latest = max(blobs, key=lambda b: b.name)
+    return latest.name
+
+
+def download_csv_from_bronze(blob_name: str) -> pd.DataFrame:
+    """Baixa o CSV do bronze e retorna um DataFrame."""
+    client = get_blob_service_client()
+    blob_client = client.get_blob_client(container=container_name, blob=blob_name)
+
+    data = blob_client.download_blob().readall()
+    df = pd.read_csv(io.BytesIO(data), dtype=str)  # tudo como string evita problemas de tipo
+    df = df.where(pd.notnull(df), None)            # converte NaN para None
+    return df
+
+
+def load_to_staging(df: pd.DataFrame, tabela: str):
+    """Carrega o DataFrame na tabela de staging (stg_<tabela>)."""
+    staging_table = f"stg_{tabela}"
+
+    with pyodbc.connect(dst_conn_str) as conn:
+        cursor = conn.cursor()
+        cursor.fast_executemany = True
+
+        # Limpa a staging
+        cursor.execute(f"TRUNCATE TABLE dbo.{staging_table}")
+
+        if df.empty:
+            logger.warning(f"DataFrame vazio para {tabela}. Staging limpa.")
+            conn.commit()
+            return
+
+        # Monta o INSERT dinâmico
+        cols = ", ".join([f"[{col}]" for col in df.columns])
+        placeholders = ", ".join(["?" for _ in df.columns])
+        insert_sql = f"INSERT INTO dbo.{staging_table} ({cols}) VALUES ({placeholders})"
+
+        # Prepara os dados
+        data = [
+            tuple(None if pd.isna(v) else v for v in row)
+            for row in df.itertuples(index=False, name=None)
+        ]
+
+        cursor.executemany(insert_sql, data)
+        conn.commit()
+        logger.info(f"Staging {staging_table}: {len(df)} linhas carregadas com sucesso.")
+
+
+def execute_merge(tabela: str):
+    """Executa a stored procedure de MERGE correspondente."""
+    sp_name = f"usp_merge_{tabela}"
+
+    with pyodbc.connect(dst_conn_str) as conn:
+        cursor = conn.cursor()
+        cursor.execute(f"EXEC dbo.{sp_name}")
+        conn.commit()
+        logger.info(f"MERGE executado com sucesso: {sp_name}")
+
+
+def carregar_tabela(tabela: str):
+    """Fluxo completo: Bronze → Staging → MERGE"""
+    try:
+        logger.info(f"Iniciando carga da tabela: {tabela}")
+
+        blob_name = get_latest_bronze_blob(tabela)
+        if not blob_name:
+            return
+
+        logger.info(f"Arquivo encontrado: {blob_name}")
+
+        df = download_csv_from_bronze(blob_name)
+        logger.info(f"CSV baixado. Total de linhas: {len(df)}")
+
+        load_to_staging(df, tabela)
+        execute_merge(tabela)
+
+        logger.info(f"Carga + MERGE concluídos com sucesso para a tabela: {tabela}")
+
+    except Exception as e:
+        logger.error(f"Erro ao processar a tabela {tabela}: {e!s}", exc_info=True)
+        raise
+
+@app.timer_trigger(
+    schedule="0 30 1 * * *",   # Todo dia às 01:30
+    arg_name="myTimer",
+    run_on_startup=False,
+    use_monitor=False
+)
+def load_analista(myTimer: func.TimerRequest) -> None:
+    carregar_tabela("analista")
+
+
+@app.timer_trigger(schedule="0 30 1 * * *", arg_name="myTimer", run_on_startup=False, use_monitor=False)
+def load_categoria(myTimer: func.TimerRequest) -> None:
+    carregar_tabela("categoria")
+
+
+@app.timer_trigger(schedule="0 30 1 * * *", arg_name="myTimer", run_on_startup=False, use_monitor=False)
+def load_chamado(myTimer: func.TimerRequest) -> None:
+    carregar_tabela("chamado")
+
+
+@app.timer_trigger(schedule="0 30 1 * * *", arg_name="myTimer", run_on_startup=False, use_monitor=False)
+def load_chamado_sla(myTimer: func.TimerRequest) -> None:
+    carregar_tabela("chamado_sla")
+
+
+@app.timer_trigger(schedule="0 30 1 * * *", arg_name="myTimer", run_on_startup=False, use_monitor=False)
+def load_chamado_status_historico(myTimer: func.TimerRequest) -> None:
+    carregar_tabela("chamado_status_historico")
+
+
+@app.timer_trigger(schedule="0 30 1 * * *", arg_name="myTimer", run_on_startup=False, use_monitor=False)
+def load_cliente_organizacao(myTimer: func.TimerRequest) -> None:
+    carregar_tabela("cliente_organizacao")
+
+
+@app.timer_trigger(schedule="0 30 1 * * *", arg_name="myTimer", run_on_startup=False, use_monitor=False)
+def load_csat_avaliacao(myTimer: func.TimerRequest) -> None:
+    carregar_tabela("csat_avaliacao")
+
+
+@app.timer_trigger(schedule="0 30 1 * * *", arg_name="myTimer", run_on_startup=False, use_monitor=False)
+def load_fila(myTimer: func.TimerRequest) -> None:
+    carregar_tabela("fila")
+
+
+@app.timer_trigger(schedule="0 30 1 * * *", arg_name="myTimer", run_on_startup=False, use_monitor=False)
+def load_sla(myTimer: func.TimerRequest) -> None:
+    carregar_tabela("sla")
+
+
+@app.timer_trigger(schedule="0 30 1 * * *", arg_name="myTimer", run_on_startup=False, use_monitor=False)
+def load_solicitante(myTimer: func.TimerRequest) -> None:
+    carregar_tabela("solicitante")
 
 @app.timer_trigger(
     schedule="0 0 * * * *", arg_name="myTimer", run_on_startup=False, use_monitor=False
@@ -163,338 +313,3 @@ def extract_sla(myTimer: func.TimerRequest) -> None:
 )
 def extract_solicitante(myTimer: func.TimerRequest) -> None:
     extrair_tabela("solicitante")
-
-
-########## INSERÇÃO de Dados ##########
-
-TABELAS = {
-    "analista": {
-        "colunas": [
-            "id_analista",
-            "cd_analista",
-            "nm_analista",
-            "ds_email",
-            "ds_nivel",
-            "id_fila_atual",
-            "fl_ativo",
-            "dt_inclusao",
-            "dt_atualizacao",
-            "nm_sistema_origem",
-            "cd_registro_origem",
-        ],
-    },
-    "categoria": {
-        "colunas": [
-            "id_categoria",
-            "cd_categoria",
-            "nm_categoria",
-            "ds_descricao",
-            "fl_ativo",
-            "dt_inclusao",
-            "dt_atualizacao",
-            "nm_sistema_origem",
-            "cd_registro_origem",
-        ],
-    },
-    "chamado": {
-        "colunas": [
-            "id_chamado",
-            "nr_chamado",
-            "ds_tipo_chamado",
-            "ds_status_chamado",
-            "ds_prioridade",
-            "dt_criacao",
-            "dt_resolucao",
-            "dt_ultima_atualizacao",
-            "id_analista_atual",
-            "id_reporter",
-            "id_categoria",
-            "id_cliente_organizacao",
-            "id_fila_atual",
-            "ds_titulo",
-            "ds_descricao",
-            "dt_inclusao",
-            "dt_atualizacao",
-            "nm_sistema_origem",
-            "cd_registro_origem",
-        ],
-    },
-    "chamado_sla": {
-        "colunas": [
-            "id_chamado_sla",
-            "id_chamado",
-            "id_sla",
-            "fl_breach",
-            "qt_tempo_restante_minutos",
-            "qt_tempo_decorrido_minutos",
-            "qt_meta_minutos",
-            "dt_referencia",
-            "dt_inclusao",
-            "dt_atualizacao",
-            "nm_sistema_origem",
-            "cd_registro_origem",
-        ],
-    },
-    "chamado_status_historico": {
-        "colunas": [
-            "id_chamado_status_historico",
-            "id_chamado",
-            "ds_status_chamado",
-            "dt_inicio_status",
-            "dt_fim_status",
-            "qt_tempo_status_minutos",
-            "id_analista_responsavel",
-            "id_fila",
-            "dt_inclusao",
-            "dt_atualizacao",
-            "nm_sistema_origem",
-            "cd_registro_origem",
-        ],
-    },
-    "cliente_organizacao": {
-        "colunas": [
-            "id_cliente_organizacao",
-            "cd_cliente_organizacao",
-            "nm_cliente_organizacao",
-            "nr_cnpj",
-            "fl_ativo",
-            "dt_inclusao",
-            "dt_atualizacao",
-            "nm_sistema_origem",
-            "cd_registro_origem",
-        ],
-        "dtype": {"nr_cnpj": str},  # preserva zeros à esquerda
-    },
-    "csat_avaliacao": {
-        "colunas": [
-            "id_csat_avaliacao",
-            "id_chamado",
-            "id_analista",
-            "nr_score",
-            "ds_comentario",
-            "dt_avaliacao",
-            "dt_inclusao",
-            "dt_atualizacao",
-            "nm_sistema_origem",
-            "cd_registro_origem",
-        ],
-    },
-    "fila": {
-        "colunas": [
-            "id_fila",
-            "cd_fila",
-            "nm_fila",
-            "ds_descricao",
-            "fl_ativo",
-            "dt_inclusao",
-            "dt_atualizacao",
-            "nm_sistema_origem",
-            "cd_registro_origem",
-        ],
-    },
-    "sla": {
-        "colunas": [
-            "id_sla",
-            "cd_sla",
-            "nm_sla",
-            "qt_meta_minutos",
-            "ds_descricao",
-            "fl_ativo",
-            "dt_inclusao",
-            "dt_atualizacao",
-            "nm_sistema_origem",
-            "cd_registro_origem",
-        ],
-    },
-    "solicitante": {
-        "colunas": [
-            "id_solicitante",
-            "cd_solicitante",
-            "id_cliente_organizacao",
-            "nm_solicitante",
-            "ds_email",
-            "ds_telefone",
-            "fl_ativo",
-            "dt_inclusao",
-            "dt_atualizacao",
-            "nm_sistema_origem",
-            "cd_registro_origem",
-        ],
-        "dtype": {"ds_telefone": str},
-    },
-}
-
-
-def inserir_tabela(tabela, colunas, sql_temp, sql_merge, myblob, dados):
-    try:
-        with pyodbc.connect(dst_conn_str) as conn:
-            cursor = conn.cursor()
-            cursor.fast_executemany = True
-
-            cursor.execute(sql_temp)
-            cursor.executemany(
-                f"""INSERT INTO {tabela} ({", ".join(colunas)})
-                    VALUES ({", ".join("?" * len(colunas))})""",
-                dados,
-            )
-            cursor.execute(sql_merge)
-            conn.commit()
-
-        logger.info(f"{len(dados)} linhas processadas de {myblob.name}")
-    except Exception as e:
-        logger.error(f"Erro ao carregar {myblob.name}: {e!s}")
-        raise
-
-
-def montar_sql(tabela: str, colunas: list[str]):
-    """Gera o #staging e o MERGE a partir da lista de colunas (1ª = chave)."""
-    pk, resto = colunas[0], colunas[1:]
-    temp = f"#Staging_{tabela}"
-
-    # "+ 0" remove a propriedade IDENTITY na temporária, permitindo inserir o id
-    sql_temp = f"""
-        SELECT TOP 0
-            {pk} + 0 AS {pk},
-            {", ".join(resto)}
-        INTO {temp}
-        FROM itsm.{tabela}
-    """
-
-    sets = ",\n                ".join(f"destino.{c} = origem.{c}" for c in resto)
-    sql_merge = f"""
-        MERGE INTO itsm.{tabela} AS destino
-        USING {temp} AS origem
-            ON destino.{pk} = origem.{pk}
- 
-        WHEN MATCHED THEN
-            UPDATE SET
-                {sets}
- 
-        WHEN NOT MATCHED BY TARGET THEN
-            INSERT ({", ".join(colunas)})
-            VALUES ({", ".join(f"origem.{c}" for c in colunas)});
-    """
-    return temp, sql_temp, sql_merge
-
-
-def carregar_csv(myblob: func.InputStream, tabela: str):
-    cfg = TABELAS[tabela]
-    colunas = cfg["colunas"]
-    logger.info(f"Processando {myblob.name}")
-
-    df = pd.read_csv(
-        io.BytesIO(myblob.read()),
-        encoding="utf-8-sig",
-        dtype=cfg.get("dtype"),
-    )
-
-    faltando = set(colunas) - set(df.columns)
-    if faltando:
-        raise ValueError(f"Colunas ausentes no CSV: {faltando}")
-
-    df = df[colunas]
-    df = df.astype(object).where(df.notna(), None)
-    dados = [tuple(r) for r in df.itertuples(index=False, name=None)]
-
-    temp, sql_temp, sql_merge = montar_sql(tabela, colunas)
-    inserir_tabela(temp, colunas, sql_temp, sql_merge, myblob, dados)
-
-
-@app.blob_trigger(
-    arg_name="myblob",
-    path="bronze/itsm/analista/{ano}/{mes}/{dia}/{nome_arquivo}",
-    connection="adlstapra2026matheus_STORAGE",
-    source="EventGrid",
-)
-def insert_analista(myblob: func.InputStream):
-    carregar_csv(myblob, "analista")
-
-
-@app.blob_trigger(
-    arg_name="myblob",
-    path="bronze/itsm/categoria/{ano}/{mes}/{dia}/{nome_arquivo}",
-    connection="adlstapra2026matheus_STORAGE",
-    source="EventGrid",
-)
-def insert_categoria(myblob: func.InputStream):
-    carregar_csv(myblob, "categoria")
-
-
-@app.blob_trigger(
-    arg_name="myblob",
-    path="bronze/itsm/chamado/{ano}/{mes}/{dia}/{nome_arquivo}",
-    connection="adlstapra2026matheus_STORAGE",
-    source="EventGrid",
-)
-def insert_chamado(myblob: func.InputStream):
-    carregar_csv(myblob, "chamado")
-
-
-@app.blob_trigger(
-    arg_name="myblob",
-    path="bronze/itsm/chamado_sla/{ano}/{mes}/{dia}/{nome_arquivo}",
-    connection="adlstapra2026matheus_STORAGE",
-    source="EventGrid",
-)
-def insert_chamado_sla(myblob: func.InputStream):
-    carregar_csv(myblob, "chamado_sla")
-
-
-@app.blob_trigger(
-    arg_name="myblob",
-    path="bronze/itsm/chamado_status_historico/{ano}/{mes}/{dia}/{nome_arquivo}",
-    connection="adlstapra2026matheus_STORAGE",
-    source="EventGrid",
-)
-def insert_chamado_status_historico(myblob: func.InputStream):
-    carregar_csv(myblob, "chamado_status_historico")
-
-
-@app.blob_trigger(
-    arg_name="myblob",
-    path="bronze/itsm/cliente_organizacao/{ano}/{mes}/{dia}/{nome_arquivo}",
-    connection="adlstapra2026matheus_STORAGE",
-    source="EventGrid",
-)
-def insert_cliente_organizacao(myblob: func.InputStream):
-    carregar_csv(myblob, "cliente_organizacao")
-
-
-@app.blob_trigger(
-    arg_name="myblob",
-    path="bronze/itsm/csat_avaliacao/{ano}/{mes}/{dia}/{nome_arquivo}",
-    connection="adlstapra2026matheus_STORAGE",
-    source="EventGrid",
-)
-def insert_csat_avaliacao(myblob: func.InputStream):
-    carregar_csv(myblob, "csat_avaliacao")
-
-
-@app.blob_trigger(
-    arg_name="myblob",
-    path="bronze/itsm/fila/{ano}/{mes}/{dia}/{nome_arquivo}",
-    connection="adlstapra2026matheus_STORAGE",
-    source="EventGrid",
-)
-def insert_fila(myblob: func.InputStream):
-    carregar_csv(myblob, "fila")
-
-
-@app.blob_trigger(
-    arg_name="myblob",
-    path="bronze/itsm/sla/{ano}/{mes}/{dia}/{nome_arquivo}",
-    connection="adlstapra2026matheus_STORAGE",
-    source="EventGrid",
-)
-def insert_sla(myblob: func.InputStream):
-    carregar_csv(myblob, "sla")
-
-
-@app.blob_trigger(
-    arg_name="myblob",
-    path="bronze/itsm/solicitante/{ano}/{mes}/{dia}/{nome_arquivo}",
-    connection="adlstapra2026matheus_STORAGE",
-    source="EventGrid",
-)
-def insert_solicitante(myblob: func.InputStream):
-    carregar_csv(myblob, "solicitante")

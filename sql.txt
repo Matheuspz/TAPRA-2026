@@ -1,0 +1,845 @@
+/* =========================================================
+   1. TABELAS FINAIS
+   ========================================================= */
+
+-- FILA
+IF OBJECT_ID('dbo.fila', 'U') IS NULL
+BEGIN
+    CREATE TABLE dbo.fila (
+        id_fila              INT             NOT NULL,
+        cd_fila              VARCHAR(50)     NOT NULL,
+        nm_fila              NVARCHAR(200)   NOT NULL,
+        ds_descricao         NVARCHAR(500)   NULL,
+        fl_ativo             BIT             NOT NULL,
+        dt_inclusao          DATETIME2(0)    NOT NULL,
+        dt_atualizacao       DATETIME2(0)    NULL,
+        nm_sistema_origem    VARCHAR(50)     NULL,
+        cd_registro_origem   VARCHAR(100)    NULL,
+        CONSTRAINT PK_fila PRIMARY KEY (id_fila)
+    );
+END
+GO
+
+-- SLA
+IF OBJECT_ID('dbo.sla', 'U') IS NULL
+BEGIN
+    CREATE TABLE dbo.sla (
+        id_sla               INT             NOT NULL,
+        cd_sla               VARCHAR(50)     NOT NULL,
+        nm_sla               NVARCHAR(200)   NOT NULL,
+        qt_meta_minutos      INT             NOT NULL,
+        ds_descricao         NVARCHAR(500)   NULL,
+        fl_ativo             BIT             NOT NULL,
+        dt_inclusao          DATETIME2(0)    NOT NULL,
+        dt_atualizacao       DATETIME2(0)    NULL,
+        nm_sistema_origem    VARCHAR(50)     NULL,
+        cd_registro_origem   VARCHAR(100)    NULL,
+        CONSTRAINT PK_sla PRIMARY KEY (id_sla)
+    );
+END
+GO
+
+-- CATEGORIA
+IF OBJECT_ID('dbo.categoria', 'U') IS NULL
+BEGIN
+    CREATE TABLE dbo.categoria (
+        id_categoria         INT             NOT NULL,
+        cd_categoria         VARCHAR(50)     NOT NULL,
+        nm_categoria         NVARCHAR(200)   NOT NULL,
+        ds_descricao         NVARCHAR(500)   NULL,
+        fl_ativo             BIT             NOT NULL,
+        dt_inclusao          DATETIME2(0)    NOT NULL,
+        dt_atualizacao       DATETIME2(0)    NULL,
+        nm_sistema_origem    VARCHAR(50)     NULL,
+        cd_registro_origem   VARCHAR(100)    NULL,
+        CONSTRAINT PK_categoria PRIMARY KEY (id_categoria)
+    );
+END
+GO
+
+-- CLIENTE_ORGANIZACAO
+IF OBJECT_ID('dbo.cliente_organizacao', 'U') IS NULL
+BEGIN
+    CREATE TABLE dbo.cliente_organizacao (
+        id_cliente_organizacao INT            NOT NULL,
+        cd_cliente_organizacao VARCHAR(50)    NOT NULL,
+        nm_cliente_organizacao NVARCHAR(200)  NOT NULL,
+        nr_cnpj                VARCHAR(20)    NULL,
+        fl_ativo               BIT            NOT NULL,
+        dt_inclusao            DATETIME2(0)   NOT NULL,
+        dt_atualizacao         DATETIME2(0)   NULL,
+        nm_sistema_origem      VARCHAR(50)    NULL,
+        cd_registro_origem     VARCHAR(100)   NULL,
+        CONSTRAINT PK_cliente_organizacao PRIMARY KEY (id_cliente_organizacao)
+    );
+END
+GO
+
+-- ANALISTA
+IF OBJECT_ID('dbo.analista', 'U') IS NULL
+BEGIN
+    CREATE TABLE dbo.analista (
+        id_analista          INT             NOT NULL,
+        cd_analista          VARCHAR(50)     NOT NULL,
+        nm_analista          NVARCHAR(200)   NOT NULL,
+        ds_email             VARCHAR(255)    NULL,
+        ds_nivel             VARCHAR(20)     NULL,
+        id_fila_atual        INT             NULL,
+        fl_ativo             BIT             NOT NULL,
+        dt_inclusao          DATETIME2(0)    NOT NULL,
+        dt_atualizacao       DATETIME2(0)    NULL,
+        nm_sistema_origem    VARCHAR(50)     NULL,
+        cd_registro_origem   VARCHAR(100)    NULL,
+        CONSTRAINT PK_analista PRIMARY KEY (id_analista)
+    );
+END
+GO
+
+-- SOLICITANTE
+IF OBJECT_ID('dbo.solicitante', 'U') IS NULL
+BEGIN
+    CREATE TABLE dbo.solicitante (
+        id_solicitante           INT             NOT NULL,
+        cd_solicitante           VARCHAR(50)     NOT NULL,
+        id_cliente_organizacao   INT             NULL,
+        nm_solicitante           NVARCHAR(200)   NOT NULL,
+        ds_email                 VARCHAR(255)    NULL,
+        ds_telefone              VARCHAR(30)     NULL,
+        fl_ativo                 BIT             NOT NULL,
+        dt_inclusao              DATETIME2(0)    NOT NULL,
+        dt_atualizacao           DATETIME2(0)    NULL,
+        nm_sistema_origem        VARCHAR(50)     NULL,
+        cd_registro_origem       VARCHAR(100)    NULL,
+        CONSTRAINT PK_solicitante PRIMARY KEY (id_solicitante)
+    );
+END
+GO
+
+-- CHAMADO
+IF OBJECT_ID('dbo.chamado', 'U') IS NULL
+BEGIN
+    CREATE TABLE dbo.chamado (
+        id_chamado               INT             NOT NULL,
+        nr_chamado               VARCHAR(50)     NOT NULL,
+        ds_tipo_chamado          VARCHAR(50)     NULL,
+        ds_status_chamado        VARCHAR(50)     NULL,
+        ds_prioridade            VARCHAR(30)     NULL,
+        dt_criacao               DATETIME2(0)    NULL,
+        dt_resolucao             DATETIME2(0)    NULL,
+        dt_ultima_atualizacao    DATETIME2(0)    NULL,
+        id_analista_atual        INT             NULL,
+        id_reporter              INT             NULL,
+        id_categoria             INT             NULL,
+        id_cliente_organizacao   INT             NULL,
+        id_fila_atual            INT             NULL,
+        ds_titulo                NVARCHAR(500)   NULL,
+        ds_descricao             NVARCHAR(MAX)   NULL,
+        dt_inclusao              DATETIME2(0)    NOT NULL,
+        dt_atualizacao           DATETIME2(0)    NULL,
+        nm_sistema_origem        VARCHAR(50)     NULL,
+        cd_registro_origem       VARCHAR(100)    NULL,
+        CONSTRAINT PK_chamado PRIMARY KEY (id_chamado)
+    );
+END
+GO
+
+-- CHAMADO_SLA
+IF OBJECT_ID('dbo.chamado_sla', 'U') IS NULL
+BEGIN
+    CREATE TABLE dbo.chamado_sla (
+        id_chamado_sla               INT             NOT NULL,
+        id_chamado                   INT             NOT NULL,
+        id_sla                       INT             NOT NULL,
+        fl_breach                    BIT             NULL,
+        qt_tempo_restante_minutos    INT             NULL,
+        qt_tempo_decorrido_minutos   INT             NULL,
+        qt_meta_minutos              INT             NULL,
+        dt_referencia                DATETIME2(0)    NULL,
+        dt_inclusao                  DATETIME2(0)    NOT NULL,
+        dt_atualizacao               DATETIME2(0)    NULL,
+        nm_sistema_origem            VARCHAR(50)     NULL,
+        cd_registro_origem           VARCHAR(100)    NULL,
+        CONSTRAINT PK_chamado_sla PRIMARY KEY (id_chamado_sla)
+    );
+END
+GO
+
+-- CHAMADO_STATUS_HISTORICO
+IF OBJECT_ID('dbo.chamado_status_historico', 'U') IS NULL
+BEGIN
+    CREATE TABLE dbo.chamado_status_historico (
+        id_chamado_status_historico  INT             NOT NULL,
+        id_chamado                   INT             NOT NULL,
+        ds_status_chamado            VARCHAR(50)     NULL,
+        dt_inicio_status             DATETIME2(0)    NULL,
+        dt_fim_status                DATETIME2(0)    NULL,
+        qt_tempo_status_minutos      INT             NULL,
+        id_analista_responsavel      INT             NULL,
+        id_fila                      INT             NULL,
+        dt_inclusao                  DATETIME2(0)    NOT NULL,
+        dt_atualizacao               DATETIME2(0)    NULL,
+        nm_sistema_origem            VARCHAR(50)     NULL,
+        cd_registro_origem           VARCHAR(100)    NULL,
+        CONSTRAINT PK_chamado_status_historico PRIMARY KEY (id_chamado_status_historico)
+    );
+END
+GO
+
+-- CSAT_AVALIACAO
+IF OBJECT_ID('dbo.csat_avaliacao', 'U') IS NULL
+BEGIN
+    CREATE TABLE dbo.csat_avaliacao (
+        id_csat_avaliacao    INT             NOT NULL,
+        id_chamado           INT             NOT NULL,
+        id_analista          INT             NULL,
+        nr_score             INT             NULL,
+        ds_comentario        NVARCHAR(1000)  NULL,
+        dt_avaliacao         DATETIME2(0)    NULL,
+        dt_inclusao          DATETIME2(0)    NOT NULL,
+        dt_atualizacao       DATETIME2(0)    NULL,
+        nm_sistema_origem    VARCHAR(50)     NULL,
+        cd_registro_origem   VARCHAR(100)    NULL,
+        CONSTRAINT PK_csat_avaliacao PRIMARY KEY (id_csat_avaliacao)
+    );
+END
+GO
+
+
+/* =========================================================
+   2. TABELAS DE STAGING
+   ========================================================= */
+
+-- Staging: FILA
+IF OBJECT_ID('dbo.stg_fila', 'U') IS NOT NULL DROP TABLE dbo.stg_fila;
+CREATE TABLE dbo.stg_fila (
+    id_fila              VARCHAR(100),
+    cd_fila              VARCHAR(100),
+    nm_fila              NVARCHAR(300),
+    ds_descricao         NVARCHAR(600),
+    fl_ativo             VARCHAR(10),
+    dt_inclusao          VARCHAR(50),
+    dt_atualizacao       VARCHAR(50),
+    nm_sistema_origem    VARCHAR(100),
+    cd_registro_origem   VARCHAR(150)
+);
+GO
+
+-- Staging: SLA
+IF OBJECT_ID('dbo.stg_sla', 'U') IS NOT NULL DROP TABLE dbo.stg_sla;
+CREATE TABLE dbo.stg_sla (
+    id_sla               VARCHAR(100),
+    cd_sla               VARCHAR(100),
+    nm_sla               NVARCHAR(300),
+    qt_meta_minutos      VARCHAR(50),
+    ds_descricao         NVARCHAR(600),
+    fl_ativo             VARCHAR(10),
+    dt_inclusao          VARCHAR(50),
+    dt_atualizacao       VARCHAR(50),
+    nm_sistema_origem    VARCHAR(100),
+    cd_registro_origem   VARCHAR(150)
+);
+GO
+
+-- Staging: CATEGORIA
+IF OBJECT_ID('dbo.stg_categoria', 'U') IS NOT NULL DROP TABLE dbo.stg_categoria;
+CREATE TABLE dbo.stg_categoria (
+    id_categoria         VARCHAR(100),
+    cd_categoria         VARCHAR(100),
+    nm_categoria         NVARCHAR(300),
+    ds_descricao         NVARCHAR(600),
+    fl_ativo             VARCHAR(10),
+    dt_inclusao          VARCHAR(50),
+    dt_atualizacao       VARCHAR(50),
+    nm_sistema_origem    VARCHAR(100),
+    cd_registro_origem   VARCHAR(150)
+);
+GO
+
+-- Staging: CLIENTE_ORGANIZACAO
+IF OBJECT_ID('dbo.stg_cliente_organizacao', 'U') IS NOT NULL DROP TABLE dbo.stg_cliente_organizacao;
+CREATE TABLE dbo.stg_cliente_organizacao (
+    id_cliente_organizacao VARCHAR(100),
+    cd_cliente_organizacao VARCHAR(100),
+    nm_cliente_organizacao NVARCHAR(300),
+    nr_cnpj                VARCHAR(30),
+    fl_ativo               VARCHAR(10),
+    dt_inclusao            VARCHAR(50),
+    dt_atualizacao         VARCHAR(50),
+    nm_sistema_origem      VARCHAR(100),
+    cd_registro_origem     VARCHAR(150)
+);
+GO
+
+-- Staging: ANALISTA
+IF OBJECT_ID('dbo.stg_analista', 'U') IS NOT NULL DROP TABLE dbo.stg_analista;
+CREATE TABLE dbo.stg_analista (
+    id_analista          VARCHAR(100),
+    cd_analista          VARCHAR(100),
+    nm_analista          NVARCHAR(300),
+    ds_email             VARCHAR(300),
+    ds_nivel             VARCHAR(50),
+    id_fila_atual        VARCHAR(100),
+    fl_ativo             VARCHAR(10),
+    dt_inclusao          VARCHAR(50),
+    dt_atualizacao       VARCHAR(50),
+    nm_sistema_origem    VARCHAR(100),
+    cd_registro_origem   VARCHAR(150)
+);
+GO
+
+-- Staging: SOLICITANTE
+IF OBJECT_ID('dbo.stg_solicitante', 'U') IS NOT NULL DROP TABLE dbo.stg_solicitante;
+CREATE TABLE dbo.stg_solicitante (
+    id_solicitante           VARCHAR(100),
+    cd_solicitante           VARCHAR(100),
+    id_cliente_organizacao   VARCHAR(100),
+    nm_solicitante           NVARCHAR(300),
+    ds_email                 VARCHAR(300),
+    ds_telefone              VARCHAR(50),
+    fl_ativo                 VARCHAR(10),
+    dt_inclusao              VARCHAR(50),
+    dt_atualizacao           VARCHAR(50),
+    nm_sistema_origem        VARCHAR(100),
+    cd_registro_origem       VARCHAR(150)
+);
+GO
+
+-- Staging: CHAMADO
+IF OBJECT_ID('dbo.stg_chamado', 'U') IS NOT NULL DROP TABLE dbo.stg_chamado;
+CREATE TABLE dbo.stg_chamado (
+    id_chamado               VARCHAR(100),
+    nr_chamado               VARCHAR(100),
+    ds_tipo_chamado          VARCHAR(100),
+    ds_status_chamado        VARCHAR(100),
+    ds_prioridade            VARCHAR(50),
+    dt_criacao               VARCHAR(50),
+    dt_resolucao             VARCHAR(50),
+    dt_ultima_atualizacao    VARCHAR(50),
+    id_analista_atual        VARCHAR(100),
+    id_reporter              VARCHAR(100),
+    id_categoria             VARCHAR(100),
+    id_cliente_organizacao   VARCHAR(100),
+    id_fila_atual            VARCHAR(100),
+    ds_titulo                NVARCHAR(600),
+    ds_descricao             NVARCHAR(MAX),
+    dt_inclusao              VARCHAR(50),
+    dt_atualizacao           VARCHAR(50),
+    nm_sistema_origem        VARCHAR(100),
+    cd_registro_origem       VARCHAR(150)
+);
+GO
+
+-- Staging: CHAMADO_SLA
+IF OBJECT_ID('dbo.stg_chamado_sla', 'U') IS NOT NULL DROP TABLE dbo.stg_chamado_sla;
+CREATE TABLE dbo.stg_chamado_sla (
+    id_chamado_sla               VARCHAR(100),
+    id_chamado                   VARCHAR(100),
+    id_sla                       VARCHAR(100),
+    fl_breach                    VARCHAR(10),
+    qt_tempo_restante_minutos    VARCHAR(50),
+    qt_tempo_decorrido_minutos   VARCHAR(50),
+    qt_meta_minutos              VARCHAR(50),
+    dt_referencia                VARCHAR(50),
+    dt_inclusao                  VARCHAR(50),
+    dt_atualizacao               VARCHAR(50),
+    nm_sistema_origem            VARCHAR(100),
+    cd_registro_origem           VARCHAR(150)
+);
+GO
+
+-- Staging: CHAMADO_STATUS_HISTORICO
+IF OBJECT_ID('dbo.stg_chamado_status_historico', 'U') IS NOT NULL DROP TABLE dbo.stg_chamado_status_historico;
+CREATE TABLE dbo.stg_chamado_status_historico (
+    id_chamado_status_historico  VARCHAR(100),
+    id_chamado                   VARCHAR(100),
+    ds_status_chamado            VARCHAR(100),
+    dt_inicio_status             VARCHAR(50),
+    dt_fim_status                VARCHAR(50),
+    qt_tempo_status_minutos      VARCHAR(50),
+    id_analista_responsavel      VARCHAR(100),
+    id_fila                      VARCHAR(100),
+    dt_inclusao                  VARCHAR(50),
+    dt_atualizacao               VARCHAR(50),
+    nm_sistema_origem            VARCHAR(100),
+    cd_registro_origem           VARCHAR(150)
+);
+GO
+
+-- Staging: CSAT_AVALIACAO
+IF OBJECT_ID('dbo.stg_csat_avaliacao', 'U') IS NOT NULL DROP TABLE dbo.stg_csat_avaliacao;
+CREATE TABLE dbo.stg_csat_avaliacao (
+    id_csat_avaliacao    VARCHAR(100),
+    id_chamado           VARCHAR(100),
+    id_analista          VARCHAR(100),
+    nr_score             VARCHAR(20),
+    ds_comentario        NVARCHAR(1500),
+    dt_avaliacao         VARCHAR(50),
+    dt_inclusao          VARCHAR(50),
+    dt_atualizacao       VARCHAR(50),
+    nm_sistema_origem    VARCHAR(100),
+    cd_registro_origem   VARCHAR(150)
+);
+GO
+
+
+/* =========================================================
+   3. STORED PROCEDURES DE MERGE
+   ========================================================= */
+
+-- MERGE FILA
+CREATE OR ALTER PROCEDURE dbo.usp_merge_fila
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    MERGE dbo.fila AS t
+    USING (
+        SELECT
+            TRY_CAST(id_fila AS INT)              AS id_fila,
+            cd_fila,
+            nm_fila,
+            ds_descricao,
+            CASE WHEN UPPER(fl_ativo) IN ('1','TRUE','S','SIM','Y','YES') THEN 1 ELSE 0 END AS fl_ativo,
+            TRY_CAST(dt_inclusao AS DATETIME2(0)) AS dt_inclusao,
+            TRY_CAST(dt_atualizacao AS DATETIME2(0)) AS dt_atualizacao,
+            nm_sistema_origem,
+            cd_registro_origem
+        FROM dbo.stg_fila
+        WHERE TRY_CAST(id_fila AS INT) IS NOT NULL
+    ) AS s
+    ON t.id_fila = s.id_fila
+
+    WHEN MATCHED THEN UPDATE SET
+        t.cd_fila            = s.cd_fila,
+        t.nm_fila            = s.nm_fila,
+        t.ds_descricao       = s.ds_descricao,
+        t.fl_ativo           = s.fl_ativo,
+        t.dt_atualizacao     = s.dt_atualizacao,
+        t.nm_sistema_origem  = s.nm_sistema_origem,
+        t.cd_registro_origem = s.cd_registro_origem
+
+    WHEN NOT MATCHED BY TARGET THEN
+        INSERT (id_fila, cd_fila, nm_fila, ds_descricao, fl_ativo, dt_inclusao, dt_atualizacao, nm_sistema_origem, cd_registro_origem)
+        VALUES (s.id_fila, s.cd_fila, s.nm_fila, s.ds_descricao, s.fl_ativo, s.dt_inclusao, s.dt_atualizacao, s.nm_sistema_origem, s.cd_registro_origem);
+END
+GO
+
+-- MERGE SLA
+CREATE OR ALTER PROCEDURE dbo.usp_merge_sla
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    MERGE dbo.sla AS t
+    USING (
+        SELECT
+            TRY_CAST(id_sla AS INT)               AS id_sla,
+            cd_sla,
+            nm_sla,
+            TRY_CAST(qt_meta_minutos AS INT)      AS qt_meta_minutos,
+            ds_descricao,
+            CASE WHEN UPPER(fl_ativo) IN ('1','TRUE','S','SIM','Y','YES') THEN 1 ELSE 0 END AS fl_ativo,
+            TRY_CAST(dt_inclusao AS DATETIME2(0)) AS dt_inclusao,
+            TRY_CAST(dt_atualizacao AS DATETIME2(0)) AS dt_atualizacao,
+            nm_sistema_origem,
+            cd_registro_origem
+        FROM dbo.stg_sla
+        WHERE TRY_CAST(id_sla AS INT) IS NOT NULL
+    ) AS s
+    ON t.id_sla = s.id_sla
+
+    WHEN MATCHED THEN UPDATE SET
+        t.cd_sla             = s.cd_sla,
+        t.nm_sla             = s.nm_sla,
+        t.qt_meta_minutos    = s.qt_meta_minutos,
+        t.ds_descricao       = s.ds_descricao,
+        t.fl_ativo           = s.fl_ativo,
+        t.dt_atualizacao     = s.dt_atualizacao,
+        t.nm_sistema_origem  = s.nm_sistema_origem,
+        t.cd_registro_origem = s.cd_registro_origem
+
+    WHEN NOT MATCHED BY TARGET THEN
+        INSERT (id_sla, cd_sla, nm_sla, qt_meta_minutos, ds_descricao, fl_ativo, dt_inclusao, dt_atualizacao, nm_sistema_origem, cd_registro_origem)
+        VALUES (s.id_sla, s.cd_sla, s.nm_sla, s.qt_meta_minutos, s.ds_descricao, s.fl_ativo, s.dt_inclusao, s.dt_atualizacao, s.nm_sistema_origem, s.cd_registro_origem);
+END
+GO
+
+-- MERGE CATEGORIA
+CREATE OR ALTER PROCEDURE dbo.usp_merge_categoria
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    MERGE dbo.categoria AS t
+    USING (
+        SELECT
+            TRY_CAST(id_categoria AS INT)         AS id_categoria,
+            cd_categoria,
+            nm_categoria,
+            ds_descricao,
+            CASE WHEN UPPER(fl_ativo) IN ('1','TRUE','S','SIM','Y','YES') THEN 1 ELSE 0 END AS fl_ativo,
+            TRY_CAST(dt_inclusao AS DATETIME2(0)) AS dt_inclusao,
+            TRY_CAST(dt_atualizacao AS DATETIME2(0)) AS dt_atualizacao,
+            nm_sistema_origem,
+            cd_registro_origem
+        FROM dbo.stg_categoria
+        WHERE TRY_CAST(id_categoria AS INT) IS NOT NULL
+    ) AS s
+    ON t.id_categoria = s.id_categoria
+
+    WHEN MATCHED THEN UPDATE SET
+        t.cd_categoria       = s.cd_categoria,
+        t.nm_categoria       = s.nm_categoria,
+        t.ds_descricao       = s.ds_descricao,
+        t.fl_ativo           = s.fl_ativo,
+        t.dt_atualizacao     = s.dt_atualizacao,
+        t.nm_sistema_origem  = s.nm_sistema_origem,
+        t.cd_registro_origem = s.cd_registro_origem
+
+    WHEN NOT MATCHED BY TARGET THEN
+        INSERT (id_categoria, cd_categoria, nm_categoria, ds_descricao, fl_ativo, dt_inclusao, dt_atualizacao, nm_sistema_origem, cd_registro_origem)
+        VALUES (s.id_categoria, s.cd_categoria, s.nm_categoria, s.ds_descricao, s.fl_ativo, s.dt_inclusao, s.dt_atualizacao, s.nm_sistema_origem, s.cd_registro_origem);
+END
+GO
+
+-- MERGE CLIENTE_ORGANIZACAO
+CREATE OR ALTER PROCEDURE dbo.usp_merge_cliente_organizacao
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    MERGE dbo.cliente_organizacao AS t
+    USING (
+        SELECT
+            TRY_CAST(id_cliente_organizacao AS INT) AS id_cliente_organizacao,
+            cd_cliente_organizacao,
+            nm_cliente_organizacao,
+            nr_cnpj,
+            CASE WHEN UPPER(fl_ativo) IN ('1','TRUE','S','SIM','Y','YES') THEN 1 ELSE 0 END AS fl_ativo,
+            TRY_CAST(dt_inclusao AS DATETIME2(0)) AS dt_inclusao,
+            TRY_CAST(dt_atualizacao AS DATETIME2(0)) AS dt_atualizacao,
+            nm_sistema_origem,
+            cd_registro_origem
+        FROM dbo.stg_cliente_organizacao
+        WHERE TRY_CAST(id_cliente_organizacao AS INT) IS NOT NULL
+    ) AS s
+    ON t.id_cliente_organizacao = s.id_cliente_organizacao
+
+    WHEN MATCHED THEN UPDATE SET
+        t.cd_cliente_organizacao = s.cd_cliente_organizacao,
+        t.nm_cliente_organizacao = s.nm_cliente_organizacao,
+        t.nr_cnpj                = s.nr_cnpj,
+        t.fl_ativo               = s.fl_ativo,
+        t.dt_atualizacao         = s.dt_atualizacao,
+        t.nm_sistema_origem      = s.nm_sistema_origem,
+        t.cd_registro_origem     = s.cd_registro_origem
+
+    WHEN NOT MATCHED BY TARGET THEN
+        INSERT (id_cliente_organizacao, cd_cliente_organizacao, nm_cliente_organizacao, nr_cnpj, fl_ativo, dt_inclusao, dt_atualizacao, nm_sistema_origem, cd_registro_origem)
+        VALUES (s.id_cliente_organizacao, s.cd_cliente_organizacao, s.nm_cliente_organizacao, s.nr_cnpj, s.fl_ativo, s.dt_inclusao, s.dt_atualizacao, s.nm_sistema_origem, s.cd_registro_origem);
+END
+GO
+
+-- MERGE ANALISTA
+CREATE OR ALTER PROCEDURE dbo.usp_merge_analista
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    MERGE dbo.analista AS t
+    USING (
+        SELECT
+            TRY_CAST(id_analista AS INT)          AS id_analista,
+            cd_analista,
+            nm_analista,
+            ds_email,
+            ds_nivel,
+            TRY_CAST(id_fila_atual AS INT)        AS id_fila_atual,
+            CASE WHEN UPPER(fl_ativo) IN ('1','TRUE','S','SIM','Y','YES') THEN 1 ELSE 0 END AS fl_ativo,
+            TRY_CAST(dt_inclusao AS DATETIME2(0)) AS dt_inclusao,
+            TRY_CAST(dt_atualizacao AS DATETIME2(0)) AS dt_atualizacao,
+            nm_sistema_origem,
+            cd_registro_origem
+        FROM dbo.stg_analista
+        WHERE TRY_CAST(id_analista AS INT) IS NOT NULL
+    ) AS s
+    ON t.id_analista = s.id_analista
+
+    WHEN MATCHED THEN UPDATE SET
+        t.cd_analista        = s.cd_analista,
+        t.nm_analista        = s.nm_analista,
+        t.ds_email           = s.ds_email,
+        t.ds_nivel           = s.ds_nivel,
+        t.id_fila_atual      = s.id_fila_atual,
+        t.fl_ativo           = s.fl_ativo,
+        t.dt_atualizacao     = s.dt_atualizacao,
+        t.nm_sistema_origem  = s.nm_sistema_origem,
+        t.cd_registro_origem = s.cd_registro_origem
+
+    WHEN NOT MATCHED BY TARGET THEN
+        INSERT (id_analista, cd_analista, nm_analista, ds_email, ds_nivel, id_fila_atual, fl_ativo, dt_inclusao, dt_atualizacao, nm_sistema_origem, cd_registro_origem)
+        VALUES (s.id_analista, s.cd_analista, s.nm_analista, s.ds_email, s.ds_nivel, s.id_fila_atual, s.fl_ativo, s.dt_inclusao, s.dt_atualizacao, s.nm_sistema_origem, s.cd_registro_origem);
+END
+GO
+
+-- MERGE SOLICITANTE
+CREATE OR ALTER PROCEDURE dbo.usp_merge_solicitante
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    MERGE dbo.solicitante AS t
+    USING (
+        SELECT
+            TRY_CAST(id_solicitante AS INT)           AS id_solicitante,
+            cd_solicitante,
+            TRY_CAST(id_cliente_organizacao AS INT)   AS id_cliente_organizacao,
+            nm_solicitante,
+            ds_email,
+            ds_telefone,
+            CASE WHEN UPPER(fl_ativo) IN ('1','TRUE','S','SIM','Y','YES') THEN 1 ELSE 0 END AS fl_ativo,
+            TRY_CAST(dt_inclusao AS DATETIME2(0))     AS dt_inclusao,
+            TRY_CAST(dt_atualizacao AS DATETIME2(0))  AS dt_atualizacao,
+            nm_sistema_origem,
+            cd_registro_origem
+        FROM dbo.stg_solicitante
+        WHERE TRY_CAST(id_solicitante AS INT) IS NOT NULL
+    ) AS s
+    ON t.id_solicitante = s.id_solicitante
+
+    WHEN MATCHED THEN UPDATE SET
+        t.cd_solicitante         = s.cd_solicitante,
+        t.id_cliente_organizacao = s.id_cliente_organizacao,
+        t.nm_solicitante         = s.nm_solicitante,
+        t.ds_email               = s.ds_email,
+        t.ds_telefone            = s.ds_telefone,
+        t.fl_ativo               = s.fl_ativo,
+        t.dt_atualizacao         = s.dt_atualizacao,
+        t.nm_sistema_origem      = s.nm_sistema_origem,
+        t.cd_registro_origem     = s.cd_registro_origem
+
+    WHEN NOT MATCHED BY TARGET THEN
+        INSERT (id_solicitante, cd_solicitante, id_cliente_organizacao, nm_solicitante, ds_email, ds_telefone, fl_ativo, dt_inclusao, dt_atualizacao, nm_sistema_origem, cd_registro_origem)
+        VALUES (s.id_solicitante, s.cd_solicitante, s.id_cliente_organizacao, s.nm_solicitante, s.ds_email, s.ds_telefone, s.fl_ativo, s.dt_inclusao, s.dt_atualizacao, s.nm_sistema_origem, s.cd_registro_origem);
+END
+GO
+
+-- MERGE CHAMADO
+CREATE OR ALTER PROCEDURE dbo.usp_merge_chamado
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    MERGE dbo.chamado AS t
+    USING (
+        SELECT
+            TRY_CAST(id_chamado AS INT)               AS id_chamado,
+            nr_chamado,
+            ds_tipo_chamado,
+            ds_status_chamado,
+            ds_prioridade,
+            TRY_CAST(dt_criacao AS DATETIME2(0))      AS dt_criacao,
+            TRY_CAST(dt_resolucao AS DATETIME2(0))    AS dt_resolucao,
+            TRY_CAST(dt_ultima_atualizacao AS DATETIME2(0)) AS dt_ultima_atualizacao,
+            TRY_CAST(id_analista_atual AS INT)        AS id_analista_atual,
+            TRY_CAST(id_reporter AS INT)              AS id_reporter,
+            TRY_CAST(id_categoria AS INT)             AS id_categoria,
+            TRY_CAST(id_cliente_organizacao AS INT)   AS id_cliente_organizacao,
+            TRY_CAST(id_fila_atual AS INT)            AS id_fila_atual,
+            ds_titulo,
+            ds_descricao,
+            TRY_CAST(dt_inclusao AS DATETIME2(0))     AS dt_inclusao,
+            TRY_CAST(dt_atualizacao AS DATETIME2(0))  AS dt_atualizacao,
+            nm_sistema_origem,
+            cd_registro_origem
+        FROM dbo.stg_chamado
+        WHERE TRY_CAST(id_chamado AS INT) IS NOT NULL
+    ) AS s
+    ON t.id_chamado = s.id_chamado
+
+    WHEN MATCHED THEN UPDATE SET
+        t.nr_chamado             = s.nr_chamado,
+        t.ds_tipo_chamado        = s.ds_tipo_chamado,
+        t.ds_status_chamado      = s.ds_status_chamado,
+        t.ds_prioridade          = s.ds_prioridade,
+        t.dt_criacao             = s.dt_criacao,
+        t.dt_resolucao           = s.dt_resolucao,
+        t.dt_ultima_atualizacao  = s.dt_ultima_atualizacao,
+        t.id_analista_atual      = s.id_analista_atual,
+        t.id_reporter            = s.id_reporter,
+        t.id_categoria           = s.id_categoria,
+        t.id_cliente_organizacao = s.id_cliente_organizacao,
+        t.id_fila_atual          = s.id_fila_atual,
+        t.ds_titulo              = s.ds_titulo,
+        t.ds_descricao           = s.ds_descricao,
+        t.dt_atualizacao         = s.dt_atualizacao,
+        t.nm_sistema_origem      = s.nm_sistema_origem,
+        t.cd_registro_origem     = s.cd_registro_origem
+
+    WHEN NOT MATCHED BY TARGET THEN
+        INSERT (
+            id_chamado, nr_chamado, ds_tipo_chamado, ds_status_chamado, ds_prioridade,
+            dt_criacao, dt_resolucao, dt_ultima_atualizacao, id_analista_atual, id_reporter,
+            id_categoria, id_cliente_organizacao, id_fila_atual, ds_titulo, ds_descricao,
+            dt_inclusao, dt_atualizacao, nm_sistema_origem, cd_registro_origem
+        )
+        VALUES (
+            s.id_chamado, s.nr_chamado, s.ds_tipo_chamado, s.ds_status_chamado, s.ds_prioridade,
+            s.dt_criacao, s.dt_resolucao, s.dt_ultima_atualizacao, s.id_analista_atual, s.id_reporter,
+            s.id_categoria, s.id_cliente_organizacao, s.id_fila_atual, s.ds_titulo, s.ds_descricao,
+            s.dt_inclusao, s.dt_atualizacao, s.nm_sistema_origem, s.cd_registro_origem
+        );
+END
+GO
+
+-- MERGE CHAMADO_SLA
+CREATE OR ALTER PROCEDURE dbo.usp_merge_chamado_sla
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    MERGE dbo.chamado_sla AS t
+    USING (
+        SELECT
+            TRY_CAST(id_chamado_sla AS INT)               AS id_chamado_sla,
+            TRY_CAST(id_chamado AS INT)                   AS id_chamado,
+            TRY_CAST(id_sla AS INT)                       AS id_sla,
+            CASE WHEN UPPER(fl_breach) IN ('1','TRUE','S','SIM','Y','YES') THEN 1 ELSE 0 END AS fl_breach,
+            TRY_CAST(qt_tempo_restante_minutos AS INT)    AS qt_tempo_restante_minutos,
+            TRY_CAST(qt_tempo_decorrido_minutos AS INT)   AS qt_tempo_decorrido_minutos,
+            TRY_CAST(qt_meta_minutos AS INT)              AS qt_meta_minutos,
+            TRY_CAST(dt_referencia AS DATETIME2(0))       AS dt_referencia,
+            TRY_CAST(dt_inclusao AS DATETIME2(0))         AS dt_inclusao,
+            TRY_CAST(dt_atualizacao AS DATETIME2(0))      AS dt_atualizacao,
+            nm_sistema_origem,
+            cd_registro_origem
+        FROM dbo.stg_chamado_sla
+        WHERE TRY_CAST(id_chamado_sla AS INT) IS NOT NULL
+    ) AS s
+    ON t.id_chamado_sla = s.id_chamado_sla
+
+    WHEN MATCHED THEN UPDATE SET
+        t.id_chamado                 = s.id_chamado,
+        t.id_sla                     = s.id_sla,
+        t.fl_breach                  = s.fl_breach,
+        t.qt_tempo_restante_minutos  = s.qt_tempo_restante_minutos,
+        t.qt_tempo_decorrido_minutos = s.qt_tempo_decorrido_minutos,
+        t.qt_meta_minutos            = s.qt_meta_minutos,
+        t.dt_referencia              = s.dt_referencia,
+        t.dt_atualizacao             = s.dt_atualizacao,
+        t.nm_sistema_origem          = s.nm_sistema_origem,
+        t.cd_registro_origem         = s.cd_registro_origem
+
+    WHEN NOT MATCHED BY TARGET THEN
+        INSERT (
+            id_chamado_sla, id_chamado, id_sla, fl_breach,
+            qt_tempo_restante_minutos, qt_tempo_decorrido_minutos, qt_meta_minutos,
+            dt_referencia, dt_inclusao, dt_atualizacao, nm_sistema_origem, cd_registro_origem
+        )
+        VALUES (
+            s.id_chamado_sla, s.id_chamado, s.id_sla, s.fl_breach,
+            s.qt_tempo_restante_minutos, s.qt_tempo_decorrido_minutos, s.qt_meta_minutos,
+            s.dt_referencia, s.dt_inclusao, s.dt_atualizacao, s.nm_sistema_origem, s.cd_registro_origem
+        );
+END
+GO
+
+-- MERGE CHAMADO_STATUS_HISTORICO
+CREATE OR ALTER PROCEDURE dbo.usp_merge_chamado_status_historico
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    MERGE dbo.chamado_status_historico AS t
+    USING (
+        SELECT
+            TRY_CAST(id_chamado_status_historico AS INT) AS id_chamado_status_historico,
+            TRY_CAST(id_chamado AS INT)                  AS id_chamado,
+            ds_status_chamado,
+            TRY_CAST(dt_inicio_status AS DATETIME2(0))   AS dt_inicio_status,
+            TRY_CAST(dt_fim_status AS DATETIME2(0))      AS dt_fim_status,
+            TRY_CAST(qt_tempo_status_minutos AS INT)     AS qt_tempo_status_minutos,
+            TRY_CAST(id_analista_responsavel AS INT)     AS id_analista_responsavel,
+            TRY_CAST(id_fila AS INT)                     AS id_fila,
+            TRY_CAST(dt_inclusao AS DATETIME2(0))        AS dt_inclusao,
+            TRY_CAST(dt_atualizacao AS DATETIME2(0))     AS dt_atualizacao,
+            nm_sistema_origem,
+            cd_registro_origem
+        FROM dbo.stg_chamado_status_historico
+        WHERE TRY_CAST(id_chamado_status_historico AS INT) IS NOT NULL
+    ) AS s
+    ON t.id_chamado_status_historico = s.id_chamado_status_historico
+
+    WHEN MATCHED THEN UPDATE SET
+        t.id_chamado              = s.id_chamado,
+        t.ds_status_chamado       = s.ds_status_chamado,
+        t.dt_inicio_status        = s.dt_inicio_status,
+        t.dt_fim_status           = s.dt_fim_status,
+        t.qt_tempo_status_minutos = s.qt_tempo_status_minutos,
+        t.id_analista_responsavel = s.id_analista_responsavel,
+        t.id_fila                 = s.id_fila,
+        t.dt_atualizacao          = s.dt_atualizacao,
+        t.nm_sistema_origem       = s.nm_sistema_origem,
+        t.cd_registro_origem      = s.cd_registro_origem
+
+    WHEN NOT MATCHED BY TARGET THEN
+        INSERT (
+            id_chamado_status_historico, id_chamado, ds_status_chamado,
+            dt_inicio_status, dt_fim_status, qt_tempo_status_minutos,
+            id_analista_responsavel, id_fila, dt_inclusao, dt_atualizacao,
+            nm_sistema_origem, cd_registro_origem
+        )
+        VALUES (
+            s.id_chamado_status_historico, s.id_chamado, s.ds_status_chamado,
+            s.dt_inicio_status, s.dt_fim_status, s.qt_tempo_status_minutos,
+            s.id_analista_responsavel, s.id_fila, s.dt_inclusao, s.dt_atualizacao,
+            s.nm_sistema_origem, s.cd_registro_origem
+        );
+END
+GO
+
+-- MERGE CSAT_AVALIACAO
+CREATE OR ALTER PROCEDURE dbo.usp_merge_csat_avaliacao
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    MERGE dbo.csat_avaliacao AS t
+    USING (
+        SELECT
+            TRY_CAST(id_csat_avaliacao AS INT)    AS id_csat_avaliacao,
+            TRY_CAST(id_chamado AS INT)           AS id_chamado,
+            TRY_CAST(id_analista AS INT)          AS id_analista,
+            TRY_CAST(nr_score AS INT)             AS nr_score,
+            ds_comentario,
+            TRY_CAST(dt_avaliacao AS DATETIME2(0)) AS dt_avaliacao,
+            TRY_CAST(dt_inclusao AS DATETIME2(0)) AS dt_inclusao,
+            TRY_CAST(dt_atualizacao AS DATETIME2(0)) AS dt_atualizacao,
+            nm_sistema_origem,
+            cd_registro_origem
+        FROM dbo.stg_csat_avaliacao
+        WHERE TRY_CAST(id_csat_avaliacao AS INT) IS NOT NULL
+    ) AS s
+    ON t.id_csat_avaliacao = s.id_csat_avaliacao
+
+    WHEN MATCHED THEN UPDATE SET
+        t.id_chamado         = s.id_chamado,
+        t.id_analista        = s.id_analista,
+        t.nr_score           = s.nr_score,
+        t.ds_comentario      = s.ds_comentario,
+        t.dt_avaliacao       = s.dt_avaliacao,
+        t.dt_atualizacao     = s.dt_atualizacao,
+        t.nm_sistema_origem  = s.nm_sistema_origem,
+        t.cd_registro_origem = s.cd_registro_origem
+
+    WHEN NOT MATCHED BY TARGET THEN
+        INSERT (
+            id_csat_avaliacao, id_chamado, id_analista, nr_score, ds_comentario,
+            dt_avaliacao, dt_inclusao, dt_atualizacao, nm_sistema_origem, cd_registro_origem
+        )
+        VALUES (
+            s.id_csat_avaliacao, s.id_chamado, s.id_analista, s.nr_score, s.ds_comentario,
+            s.dt_avaliacao, s.dt_inclusao, s.dt_atualizacao, s.nm_sistema_origem, s.cd_registro_origem
+        );
+END
+GO
