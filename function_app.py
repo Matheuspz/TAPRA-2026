@@ -50,6 +50,7 @@ src_conn_str = (
     "Connection Timeout=30;"
 )
 
+
 def upload_to_bronze(colunas, rows, tabela):
     account_url = f"https://{blob_url}.blob.core.windows.net"
     credential = DefaultAzureCredential()
@@ -91,6 +92,7 @@ def extrair_tabela(tabela: str):
         logger.error(f"Erro ao ler itsm.{tabela}: {e!s}")
         raise
 
+
 def get_blob_service_client():
     account_url = f"https://{blob_url}.blob.core.windows.net"
     credential = DefaultAzureCredential()
@@ -120,8 +122,10 @@ def download_csv_from_bronze(blob_name: str) -> pd.DataFrame:
     blob_client = client.get_blob_client(container=container_name, blob=blob_name)
 
     data = blob_client.download_blob().readall()
-    df = pd.read_csv(io.BytesIO(data), dtype=str)  # tudo como string evita problemas de tipo
-    df = df.where(pd.notnull(df), None)            # converte NaN para None
+    df = pd.read_csv(
+        io.BytesIO(data), dtype=str
+    )  # tudo como string evita problemas de tipo
+    df = df.where(pd.notnull(df), None)  # converte NaN para None
     return df
 
 
@@ -154,7 +158,9 @@ def load_to_staging(df: pd.DataFrame, tabela: str):
 
         cursor.executemany(insert_sql, data)
         conn.commit()
-        logger.info(f"Staging {staging_table}: {len(df)} linhas carregadas com sucesso.")
+        logger.info(
+            f"Staging {staging_table}: {len(df)} linhas carregadas com sucesso."
+        )
 
 
 def execute_merge(tabela: str):
@@ -187,63 +193,83 @@ def carregar_tabela(tabela: str):
 
         logger.info(f"Carga + MERGE concluídos com sucesso para a tabela: {tabela}")
 
-    except Exception as e:
-        logger.error(f"Erro ao processar a tabela {tabela}: {e!s}", exc_info=True)
+    except Exception:
+        logger.exception(f"Erro ao processar a tabela {tabela}")
         raise
 
+
 @app.timer_trigger(
-    schedule="0 30 1 * * *",   # Todo dia às 01:30
+    schedule="0 30 1 * * *",  # Todo dia às 01:30
     arg_name="myTimer",
     run_on_startup=False,
-    use_monitor=False
+    use_monitor=False,
 )
 def load_analista(myTimer: func.TimerRequest) -> None:
     carregar_tabela("analista")
 
 
-@app.timer_trigger(schedule="0 30 1 * * *", arg_name="myTimer", run_on_startup=False, use_monitor=False)
+@app.timer_trigger(
+    schedule="0 30 1 * * *", arg_name="myTimer", run_on_startup=False, use_monitor=False
+)
 def load_categoria(myTimer: func.TimerRequest) -> None:
     carregar_tabela("categoria")
 
 
-@app.timer_trigger(schedule="0 30 1 * * *", arg_name="myTimer", run_on_startup=False, use_monitor=False)
+@app.timer_trigger(
+    schedule="0 30 1 * * *", arg_name="myTimer", run_on_startup=False, use_monitor=False
+)
 def load_chamado(myTimer: func.TimerRequest) -> None:
     carregar_tabela("chamado")
 
 
-@app.timer_trigger(schedule="0 30 1 * * *", arg_name="myTimer", run_on_startup=False, use_monitor=False)
+@app.timer_trigger(
+    schedule="0 30 1 * * *", arg_name="myTimer", run_on_startup=False, use_monitor=False
+)
 def load_chamado_sla(myTimer: func.TimerRequest) -> None:
     carregar_tabela("chamado_sla")
 
 
-@app.timer_trigger(schedule="0 30 1 * * *", arg_name="myTimer", run_on_startup=False, use_monitor=False)
+@app.timer_trigger(
+    schedule="0 30 1 * * *", arg_name="myTimer", run_on_startup=False, use_monitor=False
+)
 def load_chamado_status_historico(myTimer: func.TimerRequest) -> None:
     carregar_tabela("chamado_status_historico")
 
 
-@app.timer_trigger(schedule="0 30 1 * * *", arg_name="myTimer", run_on_startup=False, use_monitor=False)
+@app.timer_trigger(
+    schedule="0 30 1 * * *", arg_name="myTimer", run_on_startup=False, use_monitor=False
+)
 def load_cliente_organizacao(myTimer: func.TimerRequest) -> None:
     carregar_tabela("cliente_organizacao")
 
 
-@app.timer_trigger(schedule="0 30 1 * * *", arg_name="myTimer", run_on_startup=False, use_monitor=False)
+@app.timer_trigger(
+    schedule="0 30 1 * * *", arg_name="myTimer", run_on_startup=False, use_monitor=False
+)
 def load_csat_avaliacao(myTimer: func.TimerRequest) -> None:
     carregar_tabela("csat_avaliacao")
 
 
-@app.timer_trigger(schedule="0 30 1 * * *", arg_name="myTimer", run_on_startup=False, use_monitor=False)
+@app.timer_trigger(
+    schedule="0 30 1 * * *", arg_name="myTimer", run_on_startup=False, use_monitor=False
+)
 def load_fila(myTimer: func.TimerRequest) -> None:
     carregar_tabela("fila")
 
 
-@app.timer_trigger(schedule="0 30 1 * * *", arg_name="myTimer", run_on_startup=False, use_monitor=False)
+@app.timer_trigger(
+    schedule="0 30 1 * * *", arg_name="myTimer", run_on_startup=False, use_monitor=False
+)
 def load_sla(myTimer: func.TimerRequest) -> None:
     carregar_tabela("sla")
 
 
-@app.timer_trigger(schedule="0 30 1 * * *", arg_name="myTimer", run_on_startup=False, use_monitor=False)
+@app.timer_trigger(
+    schedule="0 30 1 * * *", arg_name="myTimer", run_on_startup=False, use_monitor=False
+)
 def load_solicitante(myTimer: func.TimerRequest) -> None:
     carregar_tabela("solicitante")
+
 
 @app.timer_trigger(
     schedule="0 0 * * * *", arg_name="myTimer", run_on_startup=False, use_monitor=False
