@@ -119,10 +119,8 @@ def download_csv_from_bronze(blob_name: str) -> pd.DataFrame:
     blob_client = client.get_blob_client(container=container_name, blob=blob_name)
 
     data = blob_client.download_blob().readall()
-    df = pd.read_csv(
-        io.BytesIO(data), dtype=str
-    )  
-    df = df.where(pd.notnull(df), None)  
+    df = pd.read_csv(io.BytesIO(data), dtype=str)
+    df = df.where(pd.notnull(df), None)
     return df
 
 
@@ -200,133 +198,190 @@ def load_analista(myTimer: func.TimerRequest) -> None:
 
 
 @app.timer_trigger(
-    schedule="0 */30 * * * *", arg_name="myTimer", run_on_startup=False, use_monitor=False
+    schedule="0 */30 * * * *",
+    arg_name="myTimer",
+    run_on_startup=False,
+    use_monitor=False,
 )
 def load_categoria(myTimer: func.TimerRequest) -> None:
     carregar_tabela("categoria")
 
 
 @app.timer_trigger(
-    schedule="0 */30 * * * *", arg_name="myTimer", run_on_startup=False, use_monitor=False
+    schedule="0 */30 * * * *",
+    arg_name="myTimer",
+    run_on_startup=False,
+    use_monitor=False,
 )
 def load_chamado(myTimer: func.TimerRequest) -> None:
     carregar_tabela("chamado")
 
 
 @app.timer_trigger(
-    schedule="0 */30 * * * *", arg_name="myTimer", run_on_startup=False, use_monitor=False
+    schedule="0 */30 * * * *",
+    arg_name="myTimer",
+    run_on_startup=False,
+    use_monitor=False,
 )
 def load_chamado_sla(myTimer: func.TimerRequest) -> None:
     carregar_tabela("chamado_sla")
 
 
 @app.timer_trigger(
-    schedule="0 */30 * * * *", arg_name="myTimer", run_on_startup=False, use_monitor=False
+    schedule="0 */30 * * * *",
+    arg_name="myTimer",
+    run_on_startup=False,
+    use_monitor=False,
 )
 def load_chamado_status_historico(myTimer: func.TimerRequest) -> None:
     carregar_tabela("chamado_status_historico")
 
 
 @app.timer_trigger(
-    schedule="0 */30 * * * *", arg_name="myTimer", run_on_startup=False, use_monitor=False
+    schedule="0 */30 * * * *",
+    arg_name="myTimer",
+    run_on_startup=False,
+    use_monitor=False,
 )
 def load_cliente_organizacao(myTimer: func.TimerRequest) -> None:
     carregar_tabela("cliente_organizacao")
 
 
 @app.timer_trigger(
-    schedule="0 */30 * * * *", arg_name="myTimer", run_on_startup=False, use_monitor=False
+    schedule="0 */30 * * * *",
+    arg_name="myTimer",
+    run_on_startup=False,
+    use_monitor=False,
 )
 def load_csat_avaliacao(myTimer: func.TimerRequest) -> None:
     carregar_tabela("csat_avaliacao")
 
 
 @app.timer_trigger(
-    schedule="0 */30 * * * *", arg_name="myTimer", run_on_startup=False, use_monitor=False
+    schedule="0 */30 * * * *",
+    arg_name="myTimer",
+    run_on_startup=False,
+    use_monitor=False,
 )
 def load_fila(myTimer: func.TimerRequest) -> None:
     carregar_tabela("fila")
 
 
 @app.timer_trigger(
-    schedule="0 */30 * * * *", arg_name="myTimer", run_on_startup=False, use_monitor=False
+    schedule="0 */30 * * * *",
+    arg_name="myTimer",
+    run_on_startup=False,
+    use_monitor=False,
 )
 def load_sla(myTimer: func.TimerRequest) -> None:
     carregar_tabela("sla")
 
 
 @app.timer_trigger(
-    schedule="0 */30 * * * *", arg_name="myTimer", run_on_startup=False, use_monitor=False
+    schedule="0 */30 * * * *",
+    arg_name="myTimer",
+    run_on_startup=False,
+    use_monitor=False,
 )
 def load_solicitante(myTimer: func.TimerRequest) -> None:
     carregar_tabela("solicitante")
 
 
 @app.timer_trigger(
-    schedule="0 */20 * * * *", arg_name="myTimer", run_on_startup=False, use_monitor=False
+    schedule="0 */20 * * * *",
+    arg_name="myTimer",
+    run_on_startup=False,
+    use_monitor=False,
 )
 def extract_analista(myTimer: func.TimerRequest) -> None:
     extrair_tabela("analista")
 
 
 @app.timer_trigger(
-    schedule="0 */20 * * * *", arg_name="myTimer", run_on_startup=False, use_monitor=False
+    schedule="0 */20 * * * *",
+    arg_name="myTimer",
+    run_on_startup=False,
+    use_monitor=False,
 )
 def extract_categoria(myTimer: func.TimerRequest) -> None:
     extrair_tabela("categoria")
 
 
 @app.timer_trigger(
-    schedule="0 */20 * * * *", arg_name="myTimer", run_on_startup=False, use_monitor=False
+    schedule="0 */20 * * * *",
+    arg_name="myTimer",
+    run_on_startup=False,
+    use_monitor=False,
 )
 def extract_chamado(myTimer: func.TimerRequest) -> None:
     extrair_tabela("chamado")
 
 
 @app.timer_trigger(
-    schedule="0 */20 * * * *", arg_name="myTimer", run_on_startup=False, use_monitor=False
+    schedule="0 */20 * * * *",
+    arg_name="myTimer",
+    run_on_startup=False,
+    use_monitor=False,
 )
 def extract_chamado_sla(myTimer: func.TimerRequest) -> None:
     extrair_tabela("chamado_sla")
 
 
 @app.timer_trigger(
-    schedule="0 */20 * * * *", arg_name="myTimer", run_on_startup=False, use_monitor=False
+    schedule="0 */20 * * * *",
+    arg_name="myTimer",
+    run_on_startup=False,
+    use_monitor=False,
 )
 def extract_chamado_status_historico(myTimer: func.TimerRequest) -> None:
     extrair_tabela("chamado_status_historico")
 
 
 @app.timer_trigger(
-    schedule="0 */20 * * * *", arg_name="myTimer", run_on_startup=False, use_monitor=False
+    schedule="0 */20 * * * *",
+    arg_name="myTimer",
+    run_on_startup=False,
+    use_monitor=False,
 )
 def extract_cliente_organizacao(myTimer: func.TimerRequest) -> None:
     extrair_tabela("cliente_organizacao")
 
 
 @app.timer_trigger(
-    schedule="0 */20 * * * *", arg_name="myTimer", run_on_startup=False, use_monitor=False
+    schedule="0 */20 * * * *",
+    arg_name="myTimer",
+    run_on_startup=False,
+    use_monitor=False,
 )
 def extract_csat_avaliacao(myTimer: func.TimerRequest) -> None:
     extrair_tabela("csat_avaliacao")
 
 
 @app.timer_trigger(
-    schedule="0 */20 * * * *", arg_name="myTimer", run_on_startup=False, use_monitor=False
+    schedule="0 */20 * * * *",
+    arg_name="myTimer",
+    run_on_startup=False,
+    use_monitor=False,
 )
 def extract_fila(myTimer: func.TimerRequest) -> None:
     extrair_tabela("fila")
 
 
 @app.timer_trigger(
-    schedule="0 */20 * * * *", arg_name="myTimer", run_on_startup=False, use_monitor=False
+    schedule="0 */20 * * * *",
+    arg_name="myTimer",
+    run_on_startup=False,
+    use_monitor=False,
 )
 def extract_sla(myTimer: func.TimerRequest) -> None:
     extrair_tabela("sla")
 
 
 @app.timer_trigger(
-    schedule="0 */20 * * * *", arg_name="myTimer", run_on_startup=False, use_monitor=False
+    schedule="0 */20 * * * *",
+    arg_name="myTimer",
+    run_on_startup=False,
+    use_monitor=False,
 )
 def extract_solicitante(myTimer: func.TimerRequest) -> None:
     extrair_tabela("solicitante")
